@@ -136,8 +136,8 @@ class newcorner:
     """
     def __init__(self, data, bins=None, ratio=3, labels=None, truths=None, legend=None, showlims=False,
                  limlinestyle='dotted', showpoints=True, showcontours=False, hist_kwargs={},
-                 scatter_kwargs={}, contour_kwargs={}, contour_levels=[0.5, 0.9], use_math_text=True,
-                 limits=None, figsize=(9,9)):
+                 scatter_kwargs={}, contour_kwargs={}, contour_levels=[0.5, 0.9], show_contour_levels=True,
+                 use_math_text=True, limits=None, figsize=(7,7)):
         # get number of dimensions in the data
         self.ndims = data.shape[1] # get number of dimensions in data
         self.ratio = ratio
@@ -151,6 +151,7 @@ class newcorner:
         self.showcontours = showcontours
         self.scatter_kwargs = scatter_kwargs
         self.contour_kwargs = contour_kwargs
+        self.show_contour_levels = show_contour_levels
         self.legend_labels = []
         self.use_math_text = use_math_text
         self.limits = limits  # a list of tuples giving the lower and upper limits for each parameter - if some values aren't given then an empty tuple must be placed in the list for that value
@@ -167,8 +168,11 @@ class newcorner:
         # create figure
         self.fig = pl.figure(figsize=figsize)
         self.histhori = []
+        self.histhori_indices = range(0,self.ndims-1) # indexes of parameters in horizontal histograms
         self.histvert = []
+        self.histvert_indices = range(1,self.ndims) # indexes of parameters in vertical histograms
         self.jointaxes = []
+        self.jointaxes_indices = []
         
         # create grid
         gridsize = self.ratio*(self.ndims-1) + 1
@@ -198,6 +202,7 @@ class newcorner:
             axv.set_xticks([])
             axv.yaxis.set_ticks_position('left') # just show ticks on left
             self.histvert.append(axv)
+            self.histvert_indices.append(i+1)
                 
             # horizontal histograms
             axh = self.fig.add_subplot(gs[-1,(i*ratio+1):(1+(i+1)*ratio)])
@@ -236,10 +241,9 @@ class newcorner:
         
         # create plots
         self._add_plots(data, label=legend)
-        self._format_axes()
         
     def add_data(self, data, hist_kwargs, legend=None, showpoints=True, showcontours=False, scatter_kwargs={},
-                 contour_kwargs={}, contour_levels=[0.5, 0.9], limits=None):
+                 contour_kwargs={}, contour_levels=[0.5, 0.9], limits=None, show_contour_levels=True):
         """
         Add another data set to the plots, hist_kwargs are required.
         """
@@ -256,6 +260,7 @@ class newcorner:
         self.showpoints = showpoints
         self.showcontours = showcontours
         self.contour_kwargs = contour_kwargs
+        self.show_contour_levels = show_contour_levels
         self.limits = limits
 
         self._add_plots(data, label=legend)
@@ -327,6 +332,9 @@ class newcorner:
                         self.histvert[rowcount].set_ylabel(self.labels[i+1])
                         rowcount += 1
 
+                # get joint axes indices
+                self.jointaxes_indices.append((j, i+1))
+
                 if self.showpoints:
                     self.jointaxes[jointcount].scatter(data[:,j], data[:,i+1], **self.scatter_kwargs) # plot scatter
 
@@ -348,6 +356,8 @@ class newcorner:
 
                 jointcount += 1
 
+        self._format_axes()
+
     def _format_axes(self):
         """
         Set some formatting of the axes
@@ -355,22 +365,66 @@ class newcorner:
         pl.draw() # force labels to be drawn
         
         # move exponents into label
-        for ax in self.histvert:
+        for i, ax in enumerate(self.histvert):
             #[l.set_rotation(45) for l in ax.get_yticklabels()]
             ax.yaxis.set_major_formatter(ScalarFormatter(useMathText=self.use_math_text))
             self.format_exponents_in_label_single_ax(ax.yaxis)
-            
-        for ax in self.histhori:
+
+            # set limits
+            if self.limits != None:
+                if len(self.limits[self.histvert_indices[i]]) == 2:
+                    ymin, ymax = ax.get_ylim() # get current limits
+                    yminnew, ymaxnew = self.limits[self.histvert_indices[i]]
+                    if yminnew == None:
+                        yminnew = ymin
+                    if ymaxnew == None:
+                        ymaxnew = ymax
+                    dy = 0.025*(ymaxnew-yminnew) # add a little bit of space
+                    ax.set_ylim([yminnew-dy, ymaxnew+dy])
+
+        for i, ax in enumerate(self.histhori):
             [l.set_rotation(45) for l in ax.get_xticklabels()]
             ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=self.use_math_text))
             self.format_exponents_in_label_single_ax(ax.xaxis)
+
+            # set limits
+            if self.limits != None:
+                if len(self.limits[self.histhori_indices[i]]) == 2:
+                    xmin, xmax = ax.get_xlim() # get current limits
+                    xminnew, xmaxnew = self.limits[self.histhori_indices[i]] 
+                    if xminnew == None:
+                        xminnew = xmin
+                    if xmaxnew == None:
+                        xmaxnew = xmax
+                    dx = 0.025*(xmaxnew-xminnew) # add a little bit of space
+                    ax.set_xlim([xminnew-dx, xmaxnew+dx])
         
         # remove any offset text from shared axes caused by the scalar formatter for MathText
-        for ax in self.jointaxes:
+        for i, ax in enumerate(self.jointaxes):
             ax.xaxis.offsetText.set_visible(False)
             ax.yaxis.offsetText.set_visible(False)
-    
-    def plot_bounded_2d_kde_contours(self, ax, pts, xlow=None, xhigh=None, ylow=None, yhigh=None, transform=None, gridsize=500, clip=None):
+
+            if self.limits != None:
+                if len(self.limits[self.jointaxes_indices[i][0]]) == 2:
+                    xmin, xmax = ax.get_xlim() # get current limits
+                    xminnew, xmaxnew = self.limits[self.jointaxes_indices[i][0]]
+                    if xminnew == None:
+                        xminnew = xmin
+                    if xmaxnew == None:
+                        xmaxnew = xmax
+                    dx = 0.02*(xmaxnew-xminnew) # add a little bit of space
+                    ax.set_xlim([xminnew-dx, xmaxnew+dx])
+                if len(self.limits[self.jointaxes_indices[i][1]]) == 2:
+                    ymin, ymax = ax.get_ylim() # get current limits
+                    yminnew, ymaxnew = self.limits[self.jointaxes_indices[i][1]]
+                    if yminnew == None:
+                        yminnew = ymin
+                    if ymaxnew == None:
+                        ymaxnew = ymax
+                    dy = 0.02*(ymaxnew-yminnew) # add a little bit of space
+                    ax.set_ylim([yminnew-dy, ymaxnew+dy])
+
+    def plot_bounded_2d_kde_contours(self, ax, pts, xlow=None, xhigh=None, ylow=None, yhigh=None, transform=None, gridsize=250, clip=None):
         """Function (based on that by Will Farr (@farr) and Ben Farr (@bfarr)) for plotting contours from a bounded 2d KDE"""
 
         if transform is None:
@@ -419,20 +473,26 @@ class newcorner:
         # Black (thin) contours with while outlines by default
         self.contour_kwargs['linewidths'] = self.contour_kwargs.get('linewidths', 1.)
 
-        # Plot the contours
-        cset = ax.contour(xx, yy, z, zvalues, **self.contour_kwargs)
+        # Plot the contours (plot them seperately)
+        for k, level in enumerate(self.levels):
+            alpha = self.contour_kwargs.pop('alpha', 1.0)
+            self.contour_kwargs['alpha'] = level # set tranparency to the contour level
+            cset = ax.contour(xx, yy, z, [zvalues[k]], **self.contour_kwargs)
+            self.contour_kwargs['alpha'] = alpha
 
-        # Add white outlines
-        if self.contour_kwargs['colors'] == 'k':
-            pl.setp(cset.collections, path_effects=[PathEffects.withStroke(linewidth=1.5, foreground="w")])
-        fmt = {}
-        strs = ['{}%'.format(int(100*level)) for level in self.levels]
-        for l, s in zip(cset.levels, strs):
-            fmt[l] = s
+            # Add white outlines
+            if self.contour_kwargs['colors'] == 'k':
+                pl.setp(cset.collections, path_effects=[PathEffects.withStroke(linewidth=1.5, foreground="w")])
+            fmt = {}
+            #strs = ['{}%'.format(int(100*level)) for level in self.levels]
+            fmt[cset.levels[0]] = '{}%'.format(int(100*level))
+            #for l, s in zip(cset.levels, strs):
+            #    fmt[l] = s
+            
+            if self.show_contour_levels:
+                pl.clabel(cset, cset.levels, fmt=fmt, fontsize=11, **self.contour_kwargs)#, use_clabeltext=True)
+                pl.setp(cset.labelTexts, color='k', path_effects=[PathEffects.withStroke(linewidth=1.5, foreground="w")])
 
-        pl.clabel(cset, cset.levels, fmt=fmt, fontsize=11, **self.contour_kwargs)#, use_clabeltext=True)
-        pl.setp(cset.labelTexts, color='k', path_effects=[PathEffects.withStroke(linewidth=1.5, foreground="w")])
-    
     def _check_alpha(self):
         # use answer from http://stackoverflow.com/a/28398471/1862861 to have alpha transparency on hist patches, but not on edges
         if 'alpha' in self.hist_kwargs:
