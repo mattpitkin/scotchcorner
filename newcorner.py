@@ -134,7 +134,7 @@ class newcorner:
     """
     Define class to plot the new corner plot style
     """
-    def __init__(self, data, bins=None, ratio=3, labels=None, truths=None, legend=None, showlims=False, limlinestyle='dotted', showpoints=True, showcontours=False, hist_kwargs={}, scatter_kwargs={}, contour_kwargs={}, contour_levels=(0.5, 0.9, 0.95), use_math_text=True, figsize=(7,7)):
+    def __init__(self, data, bins=None, ratio=3, labels=None, truths=None, legend=None, showlims=False, limlinestyle='dotted', showpoints=True, showcontours=False, hist_kwargs={}, scatter_kwargs={}, contour_kwargs={}, contour_levels=[0.5, 0.9], use_math_text=True, figsize=(7,7)):
         # get number of dimensions in the data
         self.ndims = data.shape[1] # get number of dimensions in data
         self.ratio = ratio
@@ -179,7 +179,7 @@ class newcorner:
         self.legendaxis.tick_params(bottom='off', top='off', left='off', right='off') # remove tick marks
         
         # create figure axes
-        for i in range(ndims-1):
+        for i in range(self.ndims-1):
             # vertical histogram (and empty axes)
             axv = self.fig.add_subplot(gs[i*ratio:(i+1)*ratio,0])
             if showlims:
@@ -234,14 +234,12 @@ class newcorner:
         self._add_plots(data, label=legend)
         self._format_axes()
         
-    def add_data(self, data, hist_kwargs, legend=None, showpoints=True, showcontours=False, scatter_kwargs={}, contour_kwargs={}, contour_levels=(0.5, 0.9, 0.95)):
+    def add_data(self, data, hist_kwargs, legend=None, showpoints=True, showcontours=False, scatter_kwargs={}, contour_kwargs={}, contour_levels=[0.5, 0.9]):
         """
         Add another data set to the plots, hist_kwargs are required.
         """
 
-        ndims =  data.shape[1]
-
-        if ndims != self.ndims:
+        if data.shape[1] != self.ndims:
             raise("Error... number of dimensions not the same")
 
         self.hist_kwargs = hist_kwargs
@@ -452,6 +450,9 @@ class newcorner:
             if ilevel >= Nden:
                 ilevel = Nden-1
             zvalues.append(densort[ilevel])
+        
+        # sort into ascending order (required in Matplotlib v 1.5.1)
+        zvalues.sort()
 
         x = pts[:,0]
         y = pts[:,1]
@@ -468,7 +469,7 @@ class newcorner:
 
         # Black (thin) contours with while outlines by default
         self.contour_kwargs['linewidths'] = self.contour_kwargs.get('linewidths', 1.)
-        
+
         # Plot the contours
         cset = ax.contour(xx, yy, z, zvalues, **self.contour_kwargs)
 
