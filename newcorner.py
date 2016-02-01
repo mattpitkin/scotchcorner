@@ -20,7 +20,7 @@ mplparams = {
       'axes.grid': False, # add a grid
       'font.family': 'sans-serif',
       'font.sans-serif': 'Avant Garde, Helvetica, Computer Modern Sans serif',
-      'font.size': 14,
+      'font.size': 16,
       'legend.fontsize': 'medium',
       'legend.frameon': False,
       'axes.formatter.limits': (-3,4)}
@@ -134,7 +134,10 @@ class newcorner:
     """
     Define class to plot the new corner plot style
     """
-    def __init__(self, data, bins=None, ratio=3, labels=None, truths=None, legend=None, showlims=False, limlinestyle='dotted', showpoints=True, showcontours=False, hist_kwargs={}, scatter_kwargs={}, contour_kwargs={}, contour_levels=[0.5, 0.9], use_math_text=True, figsize=(7,7)):
+    def __init__(self, data, bins=None, ratio=3, labels=None, truths=None, legend=None, showlims=False,
+                 limlinestyle='dotted', showpoints=True, showcontours=False, hist_kwargs={},
+                 scatter_kwargs={}, contour_kwargs={}, contour_levels=[0.5, 0.9], use_math_text=True,
+                 limits=None, figsize=(9,9)):
         # get number of dimensions in the data
         self.ndims = data.shape[1] # get number of dimensions in data
         self.ratio = ratio
@@ -150,6 +153,7 @@ class newcorner:
         self.contour_kwargs = contour_kwargs
         self.legend_labels = []
         self.use_math_text = use_math_text
+        self.limits = limits  # a list of tuples giving the lower and upper limits for each parameter - if some values aren't given then an empty tuple must be placed in the list for that value
         
         # set default hist_kwargs
         self.hist_kwargs = {'bins': 20, 'histtype': 'stepfilled', 'color': 'lightslategrey', 'alpha': 0.4, 'edgecolor': 'lightslategray', 'linewidth': 1.5}
@@ -234,7 +238,8 @@ class newcorner:
         self._add_plots(data, label=legend)
         self._format_axes()
         
-    def add_data(self, data, hist_kwargs, legend=None, showpoints=True, showcontours=False, scatter_kwargs={}, contour_kwargs={}, contour_levels=[0.5, 0.9]):
+    def add_data(self, data, hist_kwargs, legend=None, showpoints=True, showcontours=False, scatter_kwargs={},
+                 contour_kwargs={}, contour_levels=[0.5, 0.9], limits=None):
         """
         Add another data set to the plots, hist_kwargs are required.
         """
@@ -251,6 +256,7 @@ class newcorner:
         self.showpoints = showpoints
         self.showcontours = showcontours
         self.contour_kwargs = contour_kwargs
+        self.limits = limits
 
         self._add_plots(data, label=legend)
 
@@ -293,6 +299,10 @@ class newcorner:
                 these_scatter_kwargs[key] = self.scatter_kwargs[key]
             self.scatter_kwargs = these_scatter_kwargs
         
+        if self.limits != None:
+          if len(self.limits) != self.ndims:
+            raise("Error... number of dimensions is not the same as the number of limits being set")
+        
         if self.showcontours:
             # set default contour kwargs
             these_contour_kwargs = {'colors': 'k'}
@@ -316,19 +326,28 @@ class newcorner:
                     if j == 0:
                         self.histvert[rowcount].set_ylabel(self.labels[i+1])
                         rowcount += 1
-                
+
                 if self.showpoints:
                     self.jointaxes[jointcount].scatter(data[:,j], data[:,i+1], **self.scatter_kwargs) # plot scatter
-                
+
                 if self.showcontours:
                     #self.plot_2d_contours(self.jointaxes[jointcount], np.vstack((data[:,j], data[:,i+1])).T)
-                    self.plot_bounded_2d_kde_contours(self.jointaxes[jointcount], np.vstack((data[:,j], data[:,i+1])).T)
-                    
+                    xlow = xhigh = ylow = yhigh = None # default limits
+                    if self.limits != None:
+                      if len(self.limits[j]) == 2:
+                        xlow = self.limits[j][0]
+                        xhigh = self.limits[j][1]
+                      if len(self.limits[i+1]) == 2:
+                        ylow = self.limits[i+1][0]
+                        yhigh = self.limits[i+1][1]
+
+                    self.plot_bounded_2d_kde_contours(self.jointaxes[jointcount], np.vstack((data[:,j], data[:,i+1])).T, xlow=xlow, xhigh=xhigh, ylow=ylow, yhigh=yhigh)
+
                 if self.truths != None:
                     self.jointaxes[jointcount].plot(self.truths[j], self.truths[i+1], 'kx')
 
                 jointcount += 1
-    
+
     def _format_axes(self):
         """
         Set some formatting of the axes
@@ -351,78 +370,8 @@ class newcorner:
             ax.xaxis.offsetText.set_visible(False)
             ax.yaxis.offsetText.set_visible(False)
     
-    def plot_2d_contours(self, ax, pts, xmin=None, xmax=None, ymin=None, ymax=None, Nx=100, Ny=100):
-        """
-        Plots the given probability interval contours, using a greedy
-        selection algorithm.
-
-        The algorithm uses a two-step process (see `this document
-        <https://dcc.ligo.org/LIGO-P1400054/public>`_) so that the
-        resulting credible areas will be unbiased.
-
-        :param ax: a matplotlib axis on which to plot the contours
-
-        :param pts: Array of shape ``(Npts, 2)`` that contains the points
-          in question.
-
-        :param xmin: Minimum value in x.  If ``None``, use minimum data
-          value.
-
-        :param xmax: Maximum value in x.  If ``None``, use minimum data
-          value.
-
-        :param ymin: Minimum value in y.  If ``None``, use minimum data
-          value.
-    
-        :param ymax: Maximum value in y.  If ``None``, use minimum data
-          value.
-
-        :param Nx: Number of subdivisions in x for contour plot.  (Default
-          100.)
-
-        :param Ny: Number of subdivisions in y for contour plot.  (Default
-          100.)
-
-        """
-
-        Npts = pts.shape[0]
-    
-        kde_pts = pts[:Npts/2,:]
-        den_pts = pts[Npts/2:,:]
-
-        Nkde = kde_pts.shape[0]
-        Nden = den_pts.shape[0]
-
-        kde = ss.gaussian_kde(kde_pts.T)
-        den = kde(den_pts.T)
-        densort = np.sort(den)[::-1]
-
-        if xmin is None:
-            xmin = np.min(pts[:,0])
-        if xmax is None:
-            xmax = np.max(pts[:,0])
-        if ymin is None:
-            ymin = np.min(pts[:,1])
-        if ymax is None:
-            ymax = np.max(pts[:,1])
-
-        xs = np.linspace(xmin, xmax, Nx)
-        ys = np.linspace(ymin, ymax, Ny)
-
-        XS, YS = np.meshgrid(xs,ys)
-        ZS = np.reshape(kde(np.row_stack((XS.flatten(), YS.flatten()))), (Nx, Ny))
-
-        zvalues=[]
-        for level in self.levels:
-            ilevel = int(Nden*level + 0.5)
-            if ilevel >= Nden:
-                ilevel = Nden-1
-            zvalues.append(densort[ilevel])
-
-        ax.contour(XS, YS, ZS, zvalues, **self.contour_kwargs)
-    
     def plot_bounded_2d_kde_contours(self, ax, pts, xlow=None, xhigh=None, ylow=None, yhigh=None, transform=None, gridsize=500, clip=None):
-        """Function (based on that by Ben Farr (@bfarr)) for plotting contours from a bounded 2d KDE"""
+        """Function (based on that by Will Farr (@farr) and Ben Farr (@bfarr)) for plotting contours from a bounded 2d KDE"""
 
         if transform is None:
             transform = lambda x: x
