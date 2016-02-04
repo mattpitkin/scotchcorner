@@ -11,7 +11,7 @@ setup(
     version=version,
     author="Matthew Pitkin",
     author_email="matthew.pitkin@glasgow.ac.uk",
-    url="https://github.com/mattpitkin/scotchcorner.py",
+    url="https://github.com/mattpitkin/scotchcorner",
     py_modules=["scotchcorner"],
     description="A different corner plot.",
     package_data={"": ["LICENSE"]},
