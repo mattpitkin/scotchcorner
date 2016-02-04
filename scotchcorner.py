@@ -143,7 +143,14 @@ class newcorner:
         self.use_math_text = use_math_text
         self.limits = limits  # a list of tuples giving the lower and upper limits for each parameter - if some values aren't given then an empty tuple must be placed in the list for that value
         
-        self.figsize = (2*self.ndims + 2, 2*self.ndims + 2) # default figure size
+        # default figure size (numbers "stolen" from those used in corner.py that are, to quote, "Some magic numbers for pretty axis layout."
+        factor = 2.0           # size of one side of one panel
+        lbdim = 0.5 * factor   # size of left/bottom margin
+        trdim = 0.2 * factor   # size of top/right margin
+        whspace = 0.05         # w/hspace size
+        K = self.ndims - 1. + (1./self.ratio) # different from corner.py to account for histogram ratio
+        plotdim = factor * K + factor * (K - 1.) * whspace
+        self.figsize = (lbdim + plotdim + trdim , lbdim + plotdim + trdim) # default figure size
         if figsize != None:
             if isinstance(figsize, tuple):
                 if len(figsize) == 2:
