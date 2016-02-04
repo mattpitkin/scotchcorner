@@ -10,13 +10,17 @@ a multi-dimensional parameter space.
 This code requires numpy, scipy and matplotlib. To make the plots look pretty a
 [matplotlib](http://matplotlib.org) version greater than or equal to 1.5.0 is needed.
 
-It can be installed using:
+The repository can be cloned and then installed using:
 
 ``python setup.py install``
 
 or for (Linux) system-wide installation use:
 
 ``sudo python setup.py install``
+
+or, using pip with:
+
+``pip install scotchcorner``
 
 If you have any suggestions/contributions for the code please create an issue, or fork and generate a pull request.
 
