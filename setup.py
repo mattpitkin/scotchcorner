@@ -4,15 +4,15 @@ import re
 from setuptools import setup
 
 # Hackishly synchronize the version.
-version = re.findall(r"__version__ = \"(.*?)\"", open("newcorner.py").read())[0]
+version = re.findall(r"__version__ = \"(.*?)\"", open("scotchcorner.py").read())[0]
 
 setup(
-    name="newcorner",
+    name="scotchcorner",
     version=version,
     author="Matthew Pitkin",
     author_email="matthew.pitkin@glasgow.ac.uk",
-    url="https://github.com/mattpitkin/newcorner.py",
-    py_modules=["newcorner"],
+    url="https://github.com/mattpitkin/scotchcorner.py",
+    py_modules=["scotchcorner"],
     description="A different corner plot.",
     package_data={"": ["LICENSE"]},
     include_package_data=True,

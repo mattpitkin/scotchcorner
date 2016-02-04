@@ -117,7 +117,7 @@ class Bounded_2d_kde(ss.gaussian_kde):
         return results
 
 
-class newcorner:
+class scotchcorner:
     """
     Define class to plot the new corner plot style
     """
