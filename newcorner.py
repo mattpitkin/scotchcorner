@@ -14,19 +14,6 @@ from matplotlib.ticker import ScalarFormatter
 import matplotlib.gridspec as gridspec
 from matplotlib import patheffects as PathEffects
 
-mplparams = {
-      'text.usetex': True, # use LaTeX for all text
-      'axes.linewidth': 0.5, # set axes linewidths to 0.5
-      'axes.grid': False, # add a grid
-      'font.family': 'sans-serif',
-      'font.sans-serif': 'Avant Garde, Helvetica, Computer Modern Sans serif',
-      'font.size': 16,
-      'legend.fontsize': 'medium',
-      'legend.frameon': False,
-      'axes.formatter.limits': (-3,4)}
-
-mpl.rcParams.update(mplparams)
-
 # A bounded KDE class (inherited from the SciPy Gaussian KDE class) created by Ben Farr @bfarr
 class Bounded_2d_kde(ss.gaussian_kde):
     r"""Represents a two-dimensional Gaussian kernel density estimator
@@ -137,7 +124,7 @@ class newcorner:
     def __init__(self, data, bins=None, ratio=3, labels=None, truths=None, legend=None, showlims=False,
                  limlinestyle='dotted', showpoints=True, showcontours=False, hist_kwargs={},
                  scatter_kwargs={}, contour_kwargs={}, contour_levels=[0.5, 0.9], show_contour_levels=True,
-                 use_math_text=True, limits=None, figsize=(7,7)):
+                 use_math_text=True, limits=None, figsize=None, mplparams=None):
         # get number of dimensions in the data
         self.ndims = data.shape[1] # get number of dimensions in data
         self.ratio = ratio
@@ -156,6 +143,30 @@ class newcorner:
         self.use_math_text = use_math_text
         self.limits = limits  # a list of tuples giving the lower and upper limits for each parameter - if some values aren't given then an empty tuple must be placed in the list for that value
         
+        self.figsize = (2*self.ndims + 2, 2*self.ndims + 2) # default figure size
+        if figsize != None:
+            if isinstance(figsize, tuple):
+                if len(figsize) == 2:
+                    self.figsize = figsize
+        
+        # set plot parameters
+        if mplparams == None:
+            # set default parameters
+            self.mplparams = {
+                'text.usetex': True, # use LaTeX for all text
+                'axes.linewidth': 0.5, # set axes linewidths to 0.5
+                'axes.grid': False, # add a grid
+                'font.family': 'sans-serif',
+                'font.sans-serif': 'Avant Garde, Helvetica, Computer Modern Sans serif',
+                'font.size': 16,
+                'legend.fontsize': 'medium',
+                'legend.frameon': False,
+                'axes.formatter.limits': (-3,4)}
+        else:
+            self.mplparams = mplparams
+
+        mpl.rcParams.update(self.mplparams)
+        
         # set default hist_kwargs
         self.hist_kwargs = {'bins': 20, 'histtype': 'stepfilled', 'color': 'lightslategrey', 'alpha': 0.4, 'edgecolor': 'lightslategray', 'linewidth': 1.5}
         for key in hist_kwargs.keys(): # set any values input
@@ -166,7 +177,7 @@ class newcorner:
                 self.hist_kwargs['bins'] = bins
 
         # create figure
-        self.fig = pl.figure(figsize=figsize)
+        self.fig = pl.figure(figsize=self.figsize)
         self.histhori = []
         self.histhori_indices = range(0,self.ndims-1) # indexes of parameters in horizontal histograms
         self.histvert = []
