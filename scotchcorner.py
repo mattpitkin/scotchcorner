@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -119,11 +119,61 @@ class Bounded_2d_kde(ss.gaussian_kde):
 
 class scotchcorner:
     """
-    Define class to plot the new corner plot style
+    Create a corner-style plot.
+    
+    Parameters
+    ----------
+    data : :class:`numpy.ndarray`
+        A (`N` x `ndims`) array of values for the `ndims` parameters
+    bins : int, optional, default: 20
+        The number of bins in the 1D histogram plots
+    ratio : int, optional, default: 3
+        The ratio of the size of 1D histograms to the size of the joint plots
+    labels : list, optional
+        A list of names for each of the `ndims` parameters
+    truths : list, optional
+        A list of the true values of each parameter
+    datatitle : string, optional
+        A title for the data set to be added as a legend
+    showhistlims : bool, optional, default: False
+        Show lines/edges/borders at the limits of the 1D histogram plots
+    histlimlinestyle : default: 'dotted'
+        The line style for the 1D histogram plot borders
+    hist_kwargs : dict
+        A dictionary of keywords arguments for the histogram function
+    showjointlim : bool, optional, default: False
+        Show borders at the limits of the joint 2D plots
+    jointlimlinestyle : default: 'dotted'
+        The line style for the joint 2D plot borders
+    showpoints: bool, default: True
+        Show the data points in the 2D joint parameter plots
+    scatter_kwargs : dict
+        A dictionary of keyword arguments for the scatter plot function
+    showcontours : bool, default: False
+        Show KDE probability contours for the 2D joint parameter plots (with levels defined by `contour_levels`)
+    contour_kwargs : dict
+        A dictionary of keyword argumemts for the contour plot function
+    contour_levels : list, default: [0.5, 0.9]
+        A list of values between 0 and 1 indicating the probability contour confidence intervals to plot
+        (defaulting to 50% and 90% contours)
+    show_level_labels : bool, default: True
+        Add labels on the contours levels showing their probability
+    use_math_text : bool, default: True
+        Use math text scientific notation for parameter tick mark labelling
+    limits : list, default: None
+        A list of tuples giving the lower and upper limits for each parameter. If limits for some parameters 
+        are not known/required then an empty tuple (or `None` within a two value tuple) must be placed in the
+        list for that parameter
+    figsize : tuple
+        A two value tuple giving the figure size
+    mplparams : dict
+        A dictionary containing matplotlib configuration values
+    
     """
-    def __init__(self, data, bins=None, ratio=3, labels=None, truths=None, legend=None, showlims=False,
-                 limlinestyle='dotted', showpoints=True, showcontours=False, hist_kwargs={},
-                 scatter_kwargs={}, contour_kwargs={}, contour_levels=[0.5, 0.9], show_contour_levels=True,
+    def __init__(self, data, bins=20, ratio=3, labels=None, truths=None, datatitle=None, showhistlims=False,
+                 histlimlinestyle='dotted', showjointlims=False, jointlimlinestyle='dotted',
+                 showpoints=True, showcontours=False, hist_kwargs={},
+                 scatter_kwargs={}, contour_kwargs={}, contour_levels=[0.5, 0.9], show_level_labels=True,
                  use_math_text=True, limits=None, figsize=None, mplparams=None):
         # get number of dimensions in the data
         self.ndims = data.shape[1] # get number of dimensions in data
@@ -138,7 +188,7 @@ class scotchcorner:
         self.showcontours = showcontours
         self.scatter_kwargs = scatter_kwargs
         self.contour_kwargs = contour_kwargs
-        self.show_contour_levels = show_contour_levels
+        self.show_level_labels = show_level_labels
         self.legend_labels = []
         self.use_math_text = use_math_text
         self.limits = limits  # a list of tuples giving the lower and upper limits for each parameter - if some values aren't given then an empty tuple must be placed in the list for that value
@@ -175,11 +225,11 @@ class scotchcorner:
         mpl.rcParams.update(self.mplparams)
         
         # set default hist_kwargs
-        self.hist_kwargs = {'bins': 20, 'histtype': 'stepfilled', 'color': 'lightslategrey', 'alpha': 0.4, 'edgecolor': 'lightslategray', 'linewidth': 1.5}
+        self.hist_kwargs = {'bins': bins, 'histtype': 'stepfilled', 'color': 'lightslategrey', 'alpha': 0.4, 'edgecolor': 'lightslategray', 'linewidth': 1.5}
         for key in hist_kwargs.keys(): # set any values input
             self.hist_kwargs[key] = hist_kwargs[key]
 
-        if bins != None:
+        if bins != 20:
             if isinstance(bins, int) and bins > 0:
                 self.hist_kwargs['bins'] = bins
 
@@ -208,10 +258,10 @@ class scotchcorner:
         for i in range(self.ndims-1):
             # vertical histogram (and empty axes)
             axv = self.fig.add_subplot(gs[i*ratio:(i+1)*ratio,0])
-            if showlims:
+            if showhistlims:
                 for loc in ['top', 'bottom']:
                     axv.spines[loc].set_alpha(0.2)
-                    axv.spines[loc].set_linestyle(limlinestyle)
+                    axv.spines[loc].set_linestyle(histlimlinestyle)
             else:
                 axv.spines['top'].set_visible(False)    # remove top border
                 axv.spines['bottom'].set_visible(False) # remove bottom border
@@ -225,10 +275,10 @@ class scotchcorner:
             # horizontal histograms
             axh = self.fig.add_subplot(gs[-1,(i*ratio+1):(1+(i+1)*ratio)])
             axh.spines['top'].set_visible(False)    # remove top border
-            if showlims:
+            if showhistlims:
                 for loc in ['left', 'right']:
                     axh.spines[loc].set_alpha(0.2)
-                    axh.spines[loc].set_linestyle(limlinestyle)
+                    axh.spines[loc].set_linestyle(histlimlinestyle)
             else:
                 axh.spines['left'].set_visible(False)   # remove left border
                 axh.spines['right'].set_visible(False)  # remove right border
@@ -240,10 +290,10 @@ class scotchcorner:
             # joint plots
             for j in range(i+1):
                 axj = self.fig.add_subplot(gs[i*ratio:(i+1)*ratio,(j*ratio+1):(1+(j+1)*ratio)], sharey=self.histvert[i], sharex=self.histhori[j])
-                if showlims:
+                if showjointlims:
                     for loc in ['top', 'right', 'left', 'bottom']:
                         axj.spines[loc].set_alpha(0.2) # show border, but with alpha = 0.2
-                        axj.spines[loc].set_linestyle(limlinestyle)
+                        axj.spines[loc].set_linestyle(jointlimlinestyle)
                 else:
                     for loc in ['top', 'right', 'left', 'bottom']:
                         axj.spines[loc].set_visible(False) # remove borders
@@ -258,10 +308,10 @@ class scotchcorner:
             self._check_alpha()
         
         # create plots
-        self._add_plots(data, label=legend)
+        self._add_plots(data, label=datatitle)
         
-    def add_data(self, data, hist_kwargs, legend=None, showpoints=True, showcontours=False, scatter_kwargs={},
-                 contour_kwargs={}, contour_levels=[0.5, 0.9], limits=None, show_contour_levels=True):
+    def add_data(self, data, hist_kwargs, datatitle=None, showpoints=True, showcontours=False, scatter_kwargs={},
+                 contour_kwargs={}, contour_levels=[0.5, 0.9], limits=None, show_level_labels=True):
         """
         Add another data set to the plots, hist_kwargs are required.
         """
@@ -278,10 +328,10 @@ class scotchcorner:
         self.showpoints = showpoints
         self.showcontours = showcontours
         self.contour_kwargs = contour_kwargs
-        self.show_contour_levels = show_contour_levels
+        self.show_level_labels = show_level_labels
         self.limits = limits
 
-        self._add_plots(data, label=legend)
+        self._add_plots(data, label=datatitle)
 
     def _add_plots(self, data, label=None):
         """
@@ -507,7 +557,7 @@ class scotchcorner:
             #for l, s in zip(cset.levels, strs):
             #    fmt[l] = s
             
-            if self.show_contour_levels:
+            if self.show_level_labels:
                 pl.clabel(cset, cset.levels, fmt=fmt, fontsize=11, **self.contour_kwargs)#, use_clabeltext=True)
                 pl.setp(cset.labelTexts, color='k', path_effects=[PathEffects.withStroke(linewidth=1.5, foreground="w")])
 
