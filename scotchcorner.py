@@ -135,16 +135,14 @@ class scotchcorner:
         A list of the true values of each parameter
     datatitle : string, optional
         A title for the data set to be added as a legend
-    showhistlims : bool, optional, default: False
-        Show lines/edges/borders at the limits of the 1D histogram plots
-    histlimlinestyle : default: 'dotted'
-        The line style for the 1D histogram plot borders
+    showlims : string, optional, default: None
+        Show edges/borders at the plots limits. Use 'hist' for limits on the 1D
+        histogram plots, 'joint' for borders around 2D joint plots, or 'both' for
+        borders on the 1D and 2D plots. The default (None) is for no borders.
+    limlinestyle : default: 'dotted'
+        The line style for the plot borders
     hist_kwargs : dict
         A dictionary of keywords arguments for the histogram function
-    showjointlim : bool, optional, default: False
-        Show borders at the limits of the joint 2D plots
-    jointlimlinestyle : default: 'dotted'
-        The line style for the joint 2D plot borders
     showpoints: bool, default: True
         Show the data points in the 2D joint parameter plots
     scatter_kwargs : dict
@@ -170,9 +168,8 @@ class scotchcorner:
         A dictionary containing matplotlib configuration values
     
     """
-    def __init__(self, data, bins=20, ratio=3, labels=None, truths=None, datatitle=None, showhistlims=False,
-                 histlimlinestyle='dotted', showjointlims=False, jointlimlinestyle='dotted',
-                 showpoints=True, showcontours=False, hist_kwargs={},
+    def __init__(self, data, bins=20, ratio=3, labels=None, truths=None, datatitle=None, showlims=None,
+                 limlinestyle='dotted', showpoints=True, showcontours=False, hist_kwargs={},
                  scatter_kwargs={}, contour_kwargs={}, contour_levels=[0.5, 0.9], show_level_labels=True,
                  use_math_text=True, limits=None, figsize=None, mplparams=None):
         # get number of dimensions in the data
@@ -258,10 +255,10 @@ class scotchcorner:
         for i in range(self.ndims-1):
             # vertical histogram (and empty axes)
             axv = self.fig.add_subplot(gs[i*ratio:(i+1)*ratio,0])
-            if showhistlims:
+            if showlims in ['hist', 'both']:
                 for loc in ['top', 'bottom']:
                     axv.spines[loc].set_alpha(0.2)
-                    axv.spines[loc].set_linestyle(histlimlinestyle)
+                    axv.spines[loc].set_linestyle(limlinestyle)
             else:
                 axv.spines['top'].set_visible(False)    # remove top border
                 axv.spines['bottom'].set_visible(False) # remove bottom border
@@ -275,10 +272,10 @@ class scotchcorner:
             # horizontal histograms
             axh = self.fig.add_subplot(gs[-1,(i*ratio+1):(1+(i+1)*ratio)])
             axh.spines['top'].set_visible(False)    # remove top border
-            if showhistlims:
+            if showlims in ['hist', 'both']:
                 for loc in ['left', 'right']:
                     axh.spines[loc].set_alpha(0.2)
-                    axh.spines[loc].set_linestyle(histlimlinestyle)
+                    axh.spines[loc].set_linestyle(limlinestyle)
             else:
                 axh.spines['left'].set_visible(False)   # remove left border
                 axh.spines['right'].set_visible(False)  # remove right border
@@ -290,10 +287,10 @@ class scotchcorner:
             # joint plots
             for j in range(i+1):
                 axj = self.fig.add_subplot(gs[i*ratio:(i+1)*ratio,(j*ratio+1):(1+(j+1)*ratio)], sharey=self.histvert[i], sharex=self.histhori[j])
-                if showjointlims:
+                if showlims in ['joint', 'both']:
                     for loc in ['top', 'right', 'left', 'bottom']:
                         axj.spines[loc].set_alpha(0.2) # show border, but with alpha = 0.2
-                        axj.spines[loc].set_linestyle(jointlimlinestyle)
+                        axj.spines[loc].set_linestyle(limlinestyle)
                 else:
                     for loc in ['top', 'right', 'left', 'bottom']:
                         axj.spines[loc].set_visible(False) # remove borders
