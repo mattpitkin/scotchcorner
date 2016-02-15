@@ -351,8 +351,8 @@ class scotchcorner:
             if 'color' not in self.truths_kwargs:
                 if 'color' in self.hist_kwargs:
                     self.truths_kwargs['color'] = self.hist_kwargs['color']
-                elif 'fc' in self.hist_kwargs:
-                    self.truths_kwargs['color'] = self.hist_kwargs['fc'][0:3]
+                elif 'edgecolor' in self.hist_kwargs:
+                    self.truths_kwargs['color'] = self.hist_kwargs['edgecolor']
                 else:
                     self.truths_kwargs['color'] == 'k'
 
@@ -375,7 +375,10 @@ class scotchcorner:
             else:
                 lc = self.hist_kwargs['color']
             self.legend_labels.append(Line2D([], [], linewidth=self.hist_kwargs['linewidth'], color=lc)) # create fake line for legend (to use line rather than a box)
-        self.legendaxis.legend(self.legend_labels, l1, loc='lower left')
+        if data.shape[1] == 2:
+            self.legendaxis.legend(self.legend_labels, l1, loc='best')
+        else:
+            self.legendaxis.legend(self.legend_labels, l1, loc='lower left')
         if self.labels != None:
             self.histvert[-1].set_ylabel(self.labels[-1])
         
