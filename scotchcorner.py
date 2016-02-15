@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -168,15 +168,22 @@ class scotchcorner:
         A dictionary containing matplotlib configuration values
     
     """
+<<<<<<< c1a91dc5466503b0c9d7cebcdc5d86012d3d5e26
     def __init__(self, data, bins=20, ratio=3, labels=None, truths=None, datatitle=None, showlims=None,
                  limlinestyle='dotted', showpoints=True, showcontours=False, hist_kwargs={},
+=======
+    def __init__(self, data, bins=20, ratio=3, labels=None, truths=None, datatitle=None, showhistlims=False,
+                 histlimlinestyle='dotted', showjointlims=False, jointlimlinestyle='dotted',
+                 showpoints=True, showcontours=False, hist_kwargs={}, truths_kwargs={},
+>>>>>>> Allow user to specify format style for truth points
                  scatter_kwargs={}, contour_kwargs={}, contour_levels=[0.5, 0.9], show_level_labels=True,
                  use_math_text=True, limits=None, figsize=None, mplparams=None):
         # get number of dimensions in the data
         self.ndims = data.shape[1] # get number of dimensions in data
         self.ratio = ratio
         self.labels = labels
-        self.truths = truths                 # true values for each parameter in data 
+        self.truths = truths                 # true values for each parameter in data
+        self.truths_kwargs = truths_kwargs
         if self.truths != None:
             if len(self.truths) != self.ndims: # must be same number of true values as parameters
                 self.truths = None
@@ -308,7 +315,8 @@ class scotchcorner:
         self._add_plots(data, label=datatitle)
         
     def add_data(self, data, hist_kwargs, datatitle=None, showpoints=True, showcontours=False, scatter_kwargs={},
-                 contour_kwargs={}, contour_levels=[0.5, 0.9], limits=None, show_level_labels=True):
+                 contour_kwargs={}, truths=None, truths_kwargs={}, contour_levels=[0.5, 0.9], limits=None,
+                 show_level_labels=True):
         """
         Add another data set to the plots, hist_kwargs are required.
         """
@@ -320,11 +328,16 @@ class scotchcorner:
         if 'bins' not in self.hist_kwargs:
             # set default number of bins to 20
             self.hist_kwargs['bins'] = 20
+        self.truths = truths
+        if self.truths != None:
+            if len(self.truths) != self.ndims: # must be same number of true values as parameters
+                self.truths = None
         self.scatter_kwargs = scatter_kwargs
         self.levels = contour_levels
         self.showpoints = showpoints
         self.showcontours = showcontours
         self.contour_kwargs = contour_kwargs
+        self.truths_kwargs = truths_kwargs
         self.show_level_labels = show_level_labels
         self.limits = limits
 
@@ -337,10 +350,26 @@ class scotchcorner:
         Label is a legend label if required.
         """
 
+        # set default truth style
+        if self.truths != None:
+            if 'color' not in self.truths_kwargs:
+                if 'color' in self.hist_kwargs:
+                    self.truths_kwargs['color'] = self.hist_kwargs['color']
+                elif 'fc' in self.hist_kwargs:
+                    self.truths_kwargs['color'] = self.hist_kwargs['fc'][0:3]
+                else:
+                    self.truths_kwargs['color'] == 'k'
+
+            if 'linestyle' not in self.truths_kwargs:
+                self.truths_kwargs['linestyle'] = '--'
+
+            if 'linewidth' not in self.truths_kwargs:
+                self.truths_kwargs['linewidth'] = 1.5
+
         # the vertical histogram
         self.histvert[-1].hist(data[:,-1], normed=True, orientation='horizontal', label=label, **self.hist_kwargs)
         if self.truths != None:
-            self.histvert[-1].axhline(self.truths[-1], color='k', ls='--', lw=1.5)
+            self.histvert[-1].axhline(self.truths[-1], **self.truths_kwargs)
 
         # put legend in the upper right plot
         _, l1 = self.histvert[-1].get_legend_handles_labels()
@@ -380,7 +409,7 @@ class scotchcorner:
             for key in self.contour_kwargs.keys():
                 these_contour_kwargs[key] = self.contour_kwargs[key]
             self.contour_kwargs = these_contour_kwargs
-        
+
         # the horizontal histograms and joint plots
         jointcount = 0
         rowcount = 0
@@ -389,7 +418,7 @@ class scotchcorner:
             if self.labels != None:
                 self.histhori[i].set_xlabel(self.labels[i])
             if self.truths != None:
-                self.histhori[i].axvline(self.truths[i], color='k', ls='--', lw=1.5)
+                self.histhori[i].axvline(self.truths[i], **self.truths_kwargs)
 
             for j in range(i+1):
                 if self.labels != None:
@@ -417,7 +446,10 @@ class scotchcorner:
                     self.plot_bounded_2d_kde_contours(self.jointaxes[jointcount], np.vstack((data[:,j], data[:,i+1])).T, xlow=xlow, xhigh=xhigh, ylow=ylow, yhigh=yhigh)
 
                 if self.truths != None:
-                    self.jointaxes[jointcount].plot(self.truths[j], self.truths[i+1], 'kx')
+                    if 'marker' not in self.truths_kwargs:
+                        self.truths_kwargs['marker'] = 'x'
+
+                    self.jointaxes[jointcount].plot(self.truths[j], self.truths[i+1], **self.truths_kwargs)
 
                 jointcount += 1
 
