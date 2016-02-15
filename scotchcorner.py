@@ -168,14 +168,8 @@ class scotchcorner:
         A dictionary containing matplotlib configuration values
     
     """
-<<<<<<< c1a91dc5466503b0c9d7cebcdc5d86012d3d5e26
     def __init__(self, data, bins=20, ratio=3, labels=None, truths=None, datatitle=None, showlims=None,
-                 limlinestyle='dotted', showpoints=True, showcontours=False, hist_kwargs={},
-=======
-    def __init__(self, data, bins=20, ratio=3, labels=None, truths=None, datatitle=None, showhistlims=False,
-                 histlimlinestyle='dotted', showjointlims=False, jointlimlinestyle='dotted',
-                 showpoints=True, showcontours=False, hist_kwargs={}, truths_kwargs={},
->>>>>>> Allow user to specify format style for truth points
+                 limlinestyle='dotted', showpoints=True, showcontours=False, hist_kwargs={}, truths_kwargs={},
                  scatter_kwargs={}, contour_kwargs={}, contour_levels=[0.5, 0.9], show_level_labels=True,
                  use_math_text=True, limits=None, figsize=None, mplparams=None):
         # get number of dimensions in the data
