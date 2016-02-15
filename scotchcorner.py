@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -246,13 +246,14 @@ class scotchcorner:
         gridsize = self.ratio*(self.ndims-1) + 1
         gs = gridspec.GridSpec(gridsize, gridsize, wspace=0.1, hspace=0.1)
 
-        # empty axes to hold any legend information
-        self.legendaxis = self.fig.add_subplot(gs[0:ratio,((self.ndims-2)*ratio+1):(1+(self.ndims-1)*ratio)])
-        for loc in ['top', 'right', 'left', 'bottom']:
-            self.legendaxis.spines[loc].set_visible(False) # remove borders
-        pl.setp(self.legendaxis.get_xticklabels(), visible=False) # remove xtick labels
-        pl.setp(self.legendaxis.get_yticklabels(), visible=False) # remove ytick labels
-        self.legendaxis.tick_params(bottom='off', top='off', left='off', right='off') # remove tick marks
+        # empty axes to hold any legend information (if not just a 2D plot)
+        if data.shape[1] > 2:
+            self.legendaxis = self.fig.add_subplot(gs[0:ratio,((self.ndims-2)*ratio+1):(1+(self.ndims-1)*ratio)])
+            for loc in ['top', 'right', 'left', 'bottom']:
+                self.legendaxis.spines[loc].set_visible(False) # remove borders
+            pl.setp(self.legendaxis.get_xticklabels(), visible=False) # remove xtick labels
+            pl.setp(self.legendaxis.get_yticklabels(), visible=False) # remove ytick labels
+            self.legendaxis.tick_params(bottom='off', top='off', left='off', right='off') # remove tick marks
         
         # create figure axes
         for i in range(self.ndims-1):
@@ -289,7 +290,11 @@ class scotchcorner:
                 
             # joint plots
             for j in range(i+1):
-                axj = self.fig.add_subplot(gs[i*ratio:(i+1)*ratio,(j*ratio+1):(1+(j+1)*ratio)], sharey=self.histvert[i], sharex=self.histhori[j])
+                axj = self.fig.add_subplot(gs[i*ratio:(i+1)*ratio,(j*ratio+1):(1+(j+1)*ratio)], sharey=self.histvert[i], 
+                                           sharex=self.histhori[j])
+                if data.shape[1] == 2:
+                    # use this as the legend axis
+                    self.legendaxis = axj
                 if showlims in ['joint', 'both']:
                     for loc in ['top', 'right', 'left', 'bottom']:
                         axj.spines[loc].set_alpha(0.2) # show border, but with alpha = 0.2
