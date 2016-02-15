@@ -143,6 +143,8 @@ class scotchcorner:
         The line style for the plot borders
     hist_kwargs : dict
         A dictionary of keywords arguments for the histogram function
+    truth_kwargs : dict
+        A dictionary of keyword arguments for plotting true values
     showpoints: bool, default: True
         Show the data points in the 2D joint parameter plots
     scatter_kwargs : dict
