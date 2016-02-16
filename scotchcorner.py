@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -241,6 +241,7 @@ class scotchcorner:
         self.histvert_indices = range(1,self.ndims) # indexes of parameters in vertical histograms
         self.jointaxes = []
         self.jointaxes_indices = []
+        self._axes = {} # dictionary of axes keyed to parameter names if available
         
         # create grid
         gridsize = self.ratio*(self.ndims-1) + 1
@@ -386,7 +387,8 @@ class scotchcorner:
             self.legendaxis.legend(self.legend_labels, l1, loc='lower left')
         if self.labels != None:
             self.histvert[-1].set_ylabel(self.labels[-1])
-        
+            self._axes[self.labels[-1]] = self.histvert[-1]
+
         if self.showpoints:
             # set default scatter plot kwargs
             if 'color' in self.hist_kwargs:
@@ -421,6 +423,7 @@ class scotchcorner:
             self.histhori[i].hist(data[:,i], normed=True, **self.hist_kwargs)
             if self.labels != None:
                 self.histhori[i].set_xlabel(self.labels[i])
+                self._axes[self.labels[i]] = self.histhori[i]
             if self.truths != None:
                 self.histhori[i].axvline(self.truths[i], **self.truths_kwargs)
 
@@ -429,6 +432,8 @@ class scotchcorner:
                     if j == 0:
                         self.histvert[rowcount].set_ylabel(self.labels[i+1])
                         rowcount += 1
+
+                    self._axes[self.labels[j]]+'vs'+self.self.labels[i+1]] = self.jointaxes[jointcount]
 
                 # get joint axes indices
                 self.jointaxes_indices.append((j, i+1))
@@ -458,6 +463,16 @@ class scotchcorner:
                 jointcount += 1
 
         self._format_axes()
+
+    def get_axis(self, param):
+        """
+        Return the axis for the given "param" (for joint axes "param" should be the required parameters separated by "vs")
+        """
+        if param in self._axes:
+            return self._axes[param]
+        else:
+            print("Parameter '%s' not one of the axes.")
+            return None
 
     def _format_axes(self):
         """
