@@ -433,7 +433,7 @@ class scotchcorner:
                         self.histvert[rowcount].set_ylabel(self.labels[i+1])
                         rowcount += 1
 
-                    self._axes[self.labels[j]]+'vs'+self.self.labels[i+1]] = self.jointaxes[jointcount]
+                    self._axes[self.labels[j]+'vs'+self.self.labels[i+1]] = self.jointaxes[jointcount]
 
                 # get joint axes indices
                 self.jointaxes_indices.append((j, i+1))
