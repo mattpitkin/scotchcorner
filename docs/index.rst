@@ -3,8 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to scotchcorner's documentation!
-========================================
+Scotchcorner
+============
+
+.. module:: scotchcorner
+
+Documentation for the corner plotting module ``scotchcorner``.
 
 Contents:
 
@@ -12,6 +16,8 @@ Contents:
    :maxdepth: 2
 
 
+.. automodule:: scotchcorner
+   :members:
 
 Indices and tables
 ==================
