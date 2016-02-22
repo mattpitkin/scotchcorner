@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-__version__ = "0.0.6"
+__version__ = "0.0.7"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -433,7 +433,7 @@ class scotchcorner:
                         self.histvert[rowcount].set_ylabel(self.labels[i+1])
                         rowcount += 1
 
-                    self._axes[self.labels[j]+'vs'+self.self.labels[i+1]] = self.jointaxes[jointcount]
+                    self._axes[self.labels[j]+'vs'+self.labels[i+1]] = self.jointaxes[jointcount]
 
                 # get joint axes indices
                 self.jointaxes_indices.append((j, i+1))
