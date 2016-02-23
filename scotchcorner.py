@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-__version__ = "0.0.8"
+__version__ = "0.0.9"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -215,7 +215,7 @@ class scotchcorner:
                 'axes.grid': False, # add a grid
                 'font.family': 'sans-serif',
                 'font.sans-serif': 'Avant Garde, Helvetica, Computer Modern Sans serif',
-                'font.size': 16,
+                'font.size': 15,
                 'legend.fontsize': 'medium',
                 'legend.frameon': False,
                 'axes.formatter.limits': (-3,4)}
