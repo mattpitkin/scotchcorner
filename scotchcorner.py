@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -10,7 +10,7 @@ import scipy.stats as ss
 import matplotlib as mpl
 from matplotlib import pyplot as pl
 from matplotlib.lines import Line2D
-from matplotlib.ticker import ScalarFormatter
+from matplotlib.ticker import ScalarFormatter, MaxNLocator
 import matplotlib.gridspec as gridspec
 from matplotlib import patheffects as PathEffects
 
@@ -371,7 +371,12 @@ class scotchcorner:
         # the vertical histogram
         self.histvert[-1].hist(data[:,-1], normed=True, orientation='horizontal', label=label, **self.hist_kwargs)
         if self.truths != None:
+            marker = None
+            if 'marker' in self.truths_kwargs: # remove any marker for line
+                marker = self.truths_kwargs.pop('marker')
             self.histvert[-1].axhline(self.truths[-1], **self.truths_kwargs)
+            if marker != None:
+                self.truths_kwargs['marker'] = marker
 
         # put legend in the upper right plot
         _, l1 = self.histvert[-1].get_legend_handles_labels()
@@ -421,11 +426,22 @@ class scotchcorner:
         rowcount = 0
         for i in range(self.ndims-1):
             self.histhori[i].hist(data[:,i], normed=True, **self.hist_kwargs)
+            
+            # make sure axes ranges on vertical histograms match those on the equivalent horizontal histograms
+            if i > 0:
+                xmin, xmax = self.histhori[i].get_xlim()
+                self.histvert[i-1].set_ylim([xmin, xmax])
+            
             if self.labels != None:
                 self.histhori[i].set_xlabel(self.labels[i])
                 self._axes[self.labels[i]] = self.histhori[i]
             if self.truths != None:
+                marker = None
+                if 'marker' in self.truths_kwargs: # remove any marker for line
+                    marker = self.truths_kwargs.pop('marker')
                 self.histhori[i].axvline(self.truths[i], **self.truths_kwargs)
+                if marker != None:
+                    self.truths_kwargs['marker'] = marker
 
             for j in range(i+1):
                 if self.labels != None:
@@ -442,7 +458,6 @@ class scotchcorner:
                     self.jointaxes[jointcount].scatter(data[:,j], data[:,i+1], **self.scatter_kwargs) # plot scatter
 
                 if self.showcontours:
-                    #self.plot_2d_contours(self.jointaxes[jointcount], np.vstack((data[:,j], data[:,i+1])).T)
                     xlow = xhigh = ylow = yhigh = None # default limits
                     if self.limits != None:
                       if len(self.limits[j]) == 2:
@@ -455,6 +470,7 @@ class scotchcorner:
                     self.plot_bounded_2d_kde_contours(self.jointaxes[jointcount], np.vstack((data[:,j], data[:,i+1])).T, xlow=xlow, xhigh=xhigh, ylow=ylow, yhigh=yhigh)
 
                 if self.truths != None:
+                    markertmp = None
                     if 'marker' not in self.truths_kwargs:
                         self.truths_kwargs['marker'] = 'x'
 
@@ -483,6 +499,9 @@ class scotchcorner:
         # move exponents into label
         for i, ax in enumerate(self.histvert):
             #[l.set_rotation(45) for l in ax.get_yticklabels()]
+            if i < len(self.histvert)-1:
+                nbins = len(ax.get_yticklabels())
+                ax.yaxis.set_major_locator(MaxNLocator(nbins=nbins, prune='lower')) # remove lower tick to avoid overlapping labels
             ax.yaxis.set_major_formatter(ScalarFormatter(useMathText=self.use_math_text))
             self.format_exponents_in_label_single_ax(ax.yaxis)
 
