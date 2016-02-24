@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-__version__ = "0.0.9"
+__version__ = "0.0.10"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -164,6 +164,10 @@ class scotchcorner:
         A list of tuples giving the lower and upper limits for each parameter. If limits for some parameters 
         are not known/required then an empty tuple (or `None` within a two value tuple) must be placed in the
         list for that parameter
+    contour_limits : list, default: None
+        A list of tuples giving the lower and upper limits for each parameter for use when creating credible
+        interval contour for joint plots. If limits for some parameters are not known/required then an empty
+        tuple (or `None` within a two value tuple) must be placed in the list for that parameter
     figsize : tuple
         A two value tuple giving the figure size
     mplparams : dict
@@ -173,7 +177,7 @@ class scotchcorner:
     def __init__(self, data, bins=20, ratio=3, labels=None, truths=None, datatitle=None, showlims=None,
                  limlinestyle='dotted', showpoints=True, showcontours=False, hist_kwargs={}, truths_kwargs={},
                  scatter_kwargs={}, contour_kwargs={}, contour_levels=[0.5, 0.9], show_level_labels=True,
-                 use_math_text=True, limits=None, figsize=None, mplparams=None):
+                 use_math_text=True, limits=None, contour_limits=None, figsize=None, mplparams=None):
         # get number of dimensions in the data
         self.ndims = data.shape[1] # get number of dimensions in data
         self.ratio = ratio
@@ -192,6 +196,7 @@ class scotchcorner:
         self.legend_labels = []
         self.use_math_text = use_math_text
         self.limits = limits  # a list of tuples giving the lower and upper limits for each parameter - if some values aren't given then an empty tuple must be placed in the list for that value
+        self.contourlimits = contour_limits # a list of tuples giving the lower and upper limits for each parameter for use in credible interval contours - if some values aren't given then an empty tuple must be placed in the list for that value
         
         # default figure size (numbers "stolen" from those used in corner.py that are, to quote, "Some magic numbers for pretty axis layout."
         factor = 2.0           # size of one side of one panel
@@ -318,7 +323,7 @@ class scotchcorner:
         
     def add_data(self, data, hist_kwargs, datatitle=None, showpoints=True, showcontours=False, scatter_kwargs={},
                  contour_kwargs={}, truths=None, truths_kwargs={}, contour_levels=[0.5, 0.9], limits=None,
-                 show_level_labels=True):
+                 contour_limits = None, show_level_labels=True):
         """
         Add another data set to the plots, hist_kwargs are required.
         """
@@ -341,6 +346,7 @@ class scotchcorner:
         self.contour_kwargs = contour_kwargs
         self.truths_kwargs = truths_kwargs
         self.show_level_labels = show_level_labels
+        self.contourlimits = contour_limits
         self.limits = limits
 
         self._add_plots(data, label=datatitle)
@@ -410,8 +416,12 @@ class scotchcorner:
             self.scatter_kwargs = these_scatter_kwargs
         
         if self.limits != None:
-          if len(self.limits) != self.ndims:
-            raise("Error... number of dimensions is not the same as the number of limits being set")
+            if len(self.limits) != self.ndims:
+                raise("Error... number of dimensions is not the same as the number of limits being set")
+        
+        if self.contourlimits != None:
+            if len(self.contourlimits) != self.ndims:
+                raise("Error... number of dimensions is not the same as the number of contour limits being set")
         
         if self.showcontours:
             # set default contour kwargs
@@ -459,13 +469,13 @@ class scotchcorner:
 
                 if self.showcontours:
                     xlow = xhigh = ylow = yhigh = None # default limits
-                    if self.limits != None:
-                      if len(self.limits[j]) == 2:
-                        xlow = self.limits[j][0]
-                        xhigh = self.limits[j][1]
-                      if len(self.limits[i+1]) == 2:
-                        ylow = self.limits[i+1][0]
-                        yhigh = self.limits[i+1][1]
+                    if self.contourlimits != None:
+                      if len(self.contourlimits[j]) == 2:
+                        xlow = self.contourlimits[j][0]
+                        xhigh = self.contourlimits[j][1]
+                      if len(self.contourlimits[i+1]) == 2:
+                        ylow = self.contourlimits[i+1][0]
+                        yhigh = self.contourlimits[i+1][1]
 
                     self.plot_bounded_2d_kde_contours(self.jointaxes[jointcount], np.vstack((data[:,j], data[:,i+1])).T, xlow=xlow, xhigh=xhigh, ylow=ylow, yhigh=yhigh)
 
