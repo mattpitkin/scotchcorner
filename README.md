@@ -8,7 +8,7 @@ a multi-dimensional parameter space.
 ## Installation
 
 This code requires numpy, scipy and matplotlib. To make the plots look pretty a
-[matplotlib](http://matplotlib.org) version greater than or equal to 1.5.0 is needed.
+[matplotlib](http://matplotlib.org) version greater than or equal to 1.5.1 is needed.
 
 The repository can be cloned and then installed using:
 
@@ -21,6 +21,10 @@ or for (Linux) system-wide installation use:
 or, using pip with:
 
 ``pip install scotchcorner``
+
+## Documentation
+
+Documentation of the code can be found [here](http://scotchcorner.readthedocs.org/en/latest/).
 
 If you have any suggestions/contributions for the code please create an issue, or fork and generate a pull request.
 
