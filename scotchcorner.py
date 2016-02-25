@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-__version__ = "0.0.10"
+__version__ = "0.0.11"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -239,7 +239,7 @@ class scotchcorner:
                 self.hist_kwargs['bins'] = bins
 
         # create figure
-        self.fig = pl.figure(figsize=self.figsize)
+        self._fig = pl.figure(figsize=self.figsize)
         self.histhori = []
         self.histhori_indices = range(0,self.ndims-1) # indexes of parameters in horizontal histograms
         self.histvert = []
@@ -254,7 +254,7 @@ class scotchcorner:
 
         # empty axes to hold any legend information (if not just a 2D plot)
         if data.shape[1] > 2:
-            self.legendaxis = self.fig.add_subplot(gs[0:ratio,((self.ndims-2)*ratio+1):(1+(self.ndims-1)*ratio)])
+            self.legendaxis = self._fig.add_subplot(gs[0:ratio,((self.ndims-2)*ratio+1):(1+(self.ndims-1)*ratio)])
             for loc in ['top', 'right', 'left', 'bottom']:
                 self.legendaxis.spines[loc].set_visible(False) # remove borders
             pl.setp(self.legendaxis.get_xticklabels(), visible=False) # remove xtick labels
@@ -264,7 +264,7 @@ class scotchcorner:
         # create figure axes
         for i in range(self.ndims-1):
             # vertical histogram (and empty axes)
-            axv = self.fig.add_subplot(gs[i*ratio:(i+1)*ratio,0])
+            axv = self._fig.add_subplot(gs[i*ratio:(i+1)*ratio,0])
             if showlims in ['hist', 'both']:
                 for loc in ['top', 'bottom']:
                     axv.spines[loc].set_alpha(0.2)
@@ -280,7 +280,7 @@ class scotchcorner:
             self.histvert_indices.append(i+1)
                 
             # horizontal histograms
-            axh = self.fig.add_subplot(gs[-1,(i*ratio+1):(1+(i+1)*ratio)])
+            axh = self._fig.add_subplot(gs[-1,(i*ratio+1):(1+(i+1)*ratio)])
             axh.spines['top'].set_visible(False)    # remove top border
             if showlims in ['hist', 'both']:
                 for loc in ['left', 'right']:
@@ -296,7 +296,7 @@ class scotchcorner:
                 
             # joint plots
             for j in range(i+1):
-                axj = self.fig.add_subplot(gs[i*ratio:(i+1)*ratio,(j*ratio+1):(1+(j+1)*ratio)], sharey=self.histvert[i], 
+                axj = self._fig.add_subplot(gs[i*ratio:(i+1)*ratio,(j*ratio+1):(1+(j+1)*ratio)], sharey=self.histvert[i], 
                                            sharex=self.histhori[j])
                 if data.shape[1] == 2:
                     # use this as the legend axis
@@ -702,8 +702,17 @@ class scotchcorner:
         ax.set_label_text(self.update_label(label, exponent_text))
             
     def savefig(self, filename):
-        self.fig.savefig(filename)
+        """
+        Save the figure
 
-    def get_fig(self):
-        return self.fig
+        Parameters
+        ----------
+        filename : str, required
+            The filename of the figure to save. The figure format is determined by the file extension.
+        """
+        self._fig.savefig(filename)
 
+    @property
+    def fig(self):
+        """ Return the :class:`matplotlib.Figure` """
+        return self._fig
