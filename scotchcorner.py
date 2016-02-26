@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-__version__ = "0.0.11"
+__version__ = "0.0.12"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -393,7 +393,7 @@ class scotchcorner:
                 lc = self.hist_kwargs['color']
             self.legend_labels.append(Line2D([], [], linewidth=self.hist_kwargs['linewidth'], color=lc)) # create fake line for legend (to use line rather than a box)
         if data.shape[1] == 2:
-            self.legendaxis.legend(self.legend_labels, l1, loc='best')
+            self.legendaxis.legend(self.legend_labels, l1, loc='best', fancybox=True, framealpha=0.4)
         else:
             self.legendaxis.legend(self.legend_labels, l1, loc='lower left')
         if self.labels != None:
