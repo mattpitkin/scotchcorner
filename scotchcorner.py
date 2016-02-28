@@ -16,14 +16,16 @@ from matplotlib import patheffects as PathEffects
 
 # A bounded KDE class (inherited from the SciPy Gaussian KDE class) created by Ben Farr @bfarr
 class Bounded_2d_kde(ss.gaussian_kde):
-    r"""Represents a two-dimensional Gaussian kernel density estimator
+    """
+    Represents a two-dimensional Gaussian kernel density estimator
     for a probability distribution function that exists on a bounded
-    domain."""
+    domain (by `Ben Farr <https://github.com/bfarr>`_).
+    """
 
     def __init__(self, pts, xlow=None, xhigh=None, ylow=None, yhigh=None, *args, **kwargs):
         """Initialize with the given bounds.  Either ``low`` or
         ``high`` may be ``None`` if the bounds are one-sided.  Extra
-        parameters are passed to :class:`gaussian_kde`.
+        parameters are passed to :class:`scipy.stats.gaussian_kde`.
 
         :param xlow: The lower x domain boundary.
 
@@ -570,7 +572,7 @@ class scotchcorner:
                     ax.set_ylim([yminnew-dy, ymaxnew+dy])
 
     def plot_bounded_2d_kde_contours(self, ax, pts, xlow=None, xhigh=None, ylow=None, yhigh=None, transform=None, gridsize=250, clip=None):
-        """Function (based on that by Will Farr (@farr) and Ben Farr (@bfarr)) for plotting contours from a bounded 2d KDE"""
+        """Function (based on that in `plotutils` by `Will Farr <https://github.com/farr>`_) and edited by `Ben Farr <https://github.com/bfarr>`_) for plotting contours from a bounded 2d KDE"""
 
         if transform is None:
             transform = lambda x: x
