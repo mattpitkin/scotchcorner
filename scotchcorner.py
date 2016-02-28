@@ -325,7 +325,7 @@ class scotchcorner:
                  contour_kwargs={}, truths=None, truths_kwargs={}, contour_levels=[0.5, 0.9], limits=None,
                  contour_limits = None, show_level_labels=True):
         """
-        Add another data set to the plots, hist_kwargs are required.
+        Add another data set to the plots, `hist_kwargs` are required.
         """
 
         if data.shape[1] != self.ndims:
@@ -639,7 +639,10 @@ class scotchcorner:
                 pl.setp(cset.labelTexts, color='k', path_effects=[PathEffects.withStroke(linewidth=1.5, foreground="w")])
 
     def _check_alpha(self):
-        # use answer from http://stackoverflow.com/a/28398471/1862861 to have alpha transparency on hist patches, but not on edges
+        """
+        Use alpha transparency on (step filled) histogram patches, but not on edges
+        (based on the answer `here <http://stackoverflow.com/a/28398471/1862861>`_)
+        """
         if 'alpha' in self.hist_kwargs:
             alpha = self.hist_kwargs.pop('alpha')
             if 'color' in self.hist_kwargs:
@@ -669,7 +672,10 @@ class scotchcorner:
             self.hist_kwargs['fc'] = ctup
             
     def update_label(self, old_label, exponent_text):
-        """ Method to transform given label into the new label (by Greg Ashton) """
+        """
+        Method to transform given label into the new label (this function comes from
+        `this patch <https://github.com/dfm/corner.py/pull/53/files>`_ to `corner.py <https://github.com/dfm/corner.py>`_
+        by `Greg Ashton <https://github.com/ga7g08>`_) """
         if exponent_text == "":
             return old_label
         try:
@@ -714,5 +720,5 @@ class scotchcorner:
 
     @property
     def fig(self):
-        """ Return the :class:`matplotlib.Figure` """
+        """ Return the :class:`matplotlib.figure.Figure` """
         return self._fig
