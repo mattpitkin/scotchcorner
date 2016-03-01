@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-__version__ = "0.0.13"
+__version__ = "0.0.14"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -528,7 +528,7 @@ class scotchcorner:
                         yminnew = ymin
                     if ymaxnew == None:
                         ymaxnew = ymax
-                    elif ymaxnew > yman: # use the smaller bound
+                    elif ymaxnew > ymax: # use the smaller bound
                         ymaxnew = ymax
                     #dy = 0.025*(ymaxnew-yminnew) # add a little bit of space
                     #ax.set_ylim([yminnew-dy, ymaxnew+dy])
@@ -550,7 +550,7 @@ class scotchcorner:
                         xminnew = xmin
                     if xmaxnew == None:
                         xmaxnew = xmax
-                    elif xmaxnew > xman: # use the smaller bound
+                    elif xmaxnew > xmax: # use the smaller bound
                         xmaxnew = xmax
                     #dx = 0.025*(xmaxnew-xminnew) # add a little bit of space
                     #ax.set_xlim([xminnew-dx, xmaxnew+dx])
