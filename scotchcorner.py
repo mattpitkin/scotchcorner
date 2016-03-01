@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-__version__ = "0.0.12"
+__version__ = "0.0.13"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -524,10 +524,15 @@ class scotchcorner:
                     yminnew, ymaxnew = self.limits[self.histvert_indices[i]]
                     if yminnew == None:
                         yminnew = ymin
+                    elif yminnew < ymin: # use the greater bound
+                        yminnew = ymin
                     if ymaxnew == None:
                         ymaxnew = ymax
-                    dy = 0.025*(ymaxnew-yminnew) # add a little bit of space
-                    ax.set_ylim([yminnew-dy, ymaxnew+dy])
+                    elif ymaxnew > yman: # use the smaller bound
+                        ymaxnew = ymax
+                    #dy = 0.025*(ymaxnew-yminnew) # add a little bit of space
+                    #ax.set_ylim([yminnew-dy, ymaxnew+dy])
+                    ax.set_ylim([yminnew, ymaxnew])
 
         for i, ax in enumerate(self.histhori):
             [l.set_rotation(45) for l in ax.get_xticklabels()]
@@ -541,10 +546,15 @@ class scotchcorner:
                     xminnew, xmaxnew = self.limits[self.histhori_indices[i]] 
                     if xminnew == None:
                         xminnew = xmin
+                    elif xminnew < xmin: # use the greater bound
+                        xminnew = xmin
                     if xmaxnew == None:
                         xmaxnew = xmax
-                    dx = 0.025*(xmaxnew-xminnew) # add a little bit of space
-                    ax.set_xlim([xminnew-dx, xmaxnew+dx])
+                    elif xmaxnew > xman: # use the smaller bound
+                        xmaxnew = xmax
+                    #dx = 0.025*(xmaxnew-xminnew) # add a little bit of space
+                    #ax.set_xlim([xminnew-dx, xmaxnew+dx])
+                    ax.set_xlim([xminnew, xmaxnew])
         
         # remove any offset text from shared axes caused by the scalar formatter for MathText
         for i, ax in enumerate(self.jointaxes):
