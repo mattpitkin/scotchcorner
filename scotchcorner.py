@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -614,8 +614,8 @@ class scotchcorner:
 
         # Calculate the KDE
         Npts = pts.shape[0]
-        kde_pts = transform(pts[:Npts/2,:])
-        den_pts = transform(pts[Npts/2:,:])
+        kde_pts = transform(pts[:int(Npts/2),:])
+        den_pts = transform(pts[int(Npts/2):,:])
 
         Nden = den_pts.shape[0]
 
