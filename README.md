@@ -24,6 +24,12 @@ or, using pip with:
 
 ``pip install scotchcorner``
 
+## Example
+
+Here's an example of the kind of plot you could produce:
+
+![Example plot](example.png)
+
 ## Documentation
 
 Documentation of the code can be found [here](http://scotchcorner.readthedocs.org/en/latest/).
