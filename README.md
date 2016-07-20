@@ -1,5 +1,7 @@
 # scotchcorner
 
+[![GitHub version](https://badge.fury.io/gh/mattpitkin%2Fscotchcorner.svg)](https://badge.fury.io/gh/mattpitkin%2Fscotchcorner)
+
 Greatly inspired by [corner.py](https://github.com/dfm/corner.py), this is an attempt to create a 
 slightly different "corner" plot (and possibly the only one named after a [major junction on
 the A1](https://en.wikipedia.org/wiki/Scotch_Corner)) for showing different combinations of projections of samples from
