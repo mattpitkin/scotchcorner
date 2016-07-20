@@ -1,6 +1,6 @@
-from __future__ import print_function
+from __future__ import print_function, division
 
-__version__ = "0.0.14"
+__version__ = "0.1.0"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -67,8 +67,7 @@ class Bounded_2d_kde(ss.gaussian_kde):
         return self._yhigh
 
     def evaluate(self, pts):
-        """Return an estimate of the density evaluated at the given
-        points."""
+        """Return an estimate of the density evaluated at the given points."""
         pts = np.atleast_2d(pts)
         assert pts.ndim == 2, 'points must be two-dimensional'
 
@@ -149,6 +148,8 @@ class scotchcorner:
         A dictionary of keyword arguments for plotting true values
     showpoints: bool, default: True
         Show the data points in the 2D joint parameter plots
+    thinpoints : float, default: 1.0
+        Thin-down the number of points being plotted in the 2D scatter plots by this factor
     scatter_kwargs : dict
         A dictionary of keyword arguments for the scatter plot function
     showcontours : bool, default: False
@@ -179,18 +180,21 @@ class scotchcorner:
     def __init__(self, data, bins=20, ratio=3, labels=None, truths=None, datatitle=None, showlims=None,
                  limlinestyle='dotted', showpoints=True, showcontours=False, hist_kwargs={}, truths_kwargs={},
                  scatter_kwargs={}, contour_kwargs={}, contour_levels=[0.5, 0.9], show_level_labels=True,
-                 use_math_text=True, limits=None, contour_limits=None, figsize=None, mplparams=None):
+                 use_math_text=True, limits=None, contour_limits=None, figsize=None, mplparams=None,
+                 thinpoints=1.0):
         # get number of dimensions in the data
         self.ndims = data.shape[1] # get number of dimensions in data
         self.ratio = ratio
         self.labels = labels
         self.truths = truths                 # true values for each parameter in data
         self.truths_kwargs = truths_kwargs
-        if self.truths != None:
+        if self.truths is not None:
             if len(self.truths) != self.ndims: # must be same number of true values as parameters
                 self.truths = None
         self.levels = contour_levels
         self.showpoints = showpoints
+        self.thinpoints = thinpoints
+        self.thinpermutation = None
         self.showcontours = showcontours
         self.scatter_kwargs = scatter_kwargs
         self.contour_kwargs = contour_kwargs
@@ -208,7 +212,7 @@ class scotchcorner:
         K = self.ndims - 1. + (1./self.ratio) # different from corner.py to account for histogram ratio
         plotdim = factor * K + factor * (K - 1.) * whspace
         self.figsize = (lbdim + plotdim + trdim , lbdim + plotdim + trdim) # default figure size
-        if figsize != None:
+        if figsize is not None:
             if isinstance(figsize, tuple):
                 if len(figsize) == 2:
                     self.figsize = figsize
@@ -325,7 +329,7 @@ class scotchcorner:
         
     def add_data(self, data, hist_kwargs, datatitle=None, showpoints=True, showcontours=False, scatter_kwargs={},
                  contour_kwargs={}, truths=None, truths_kwargs={}, contour_levels=[0.5, 0.9], limits=None,
-                 contour_limits = None, show_level_labels=True):
+                 contour_limits = None, show_level_labels=True, thinpoints=1.0):
         """
         Add another data set to the plots, `hist_kwargs` are required.
         """
@@ -338,7 +342,7 @@ class scotchcorner:
             # set default number of bins to 20
             self.hist_kwargs['bins'] = 20
         self.truths = truths
-        if self.truths != None:
+        if self.truths is not None:
             if len(self.truths) != self.ndims: # must be same number of true values as parameters
                 self.truths = None
         self.scatter_kwargs = scatter_kwargs
@@ -350,6 +354,11 @@ class scotchcorner:
         self.show_level_labels = show_level_labels
         self.contourlimits = contour_limits
         self.limits = limits
+        
+        if self.showpoints:
+            if thinpoints != self.thinpoints:
+                self.thinpoints = thinpoints
+            self.thinpermutation = None
 
         self._add_plots(data, label=datatitle)
 
@@ -361,7 +370,7 @@ class scotchcorner:
         """
 
         # set default truth style
-        if self.truths != None:
+        if self.truths is not None:
             if 'color' not in self.truths_kwargs:
                 if 'color' in self.hist_kwargs:
                     self.truths_kwargs['color'] = self.hist_kwargs['color']
@@ -378,17 +387,18 @@ class scotchcorner:
 
         # the vertical histogram
         self.histvert[-1].hist(data[:,-1], normed=True, orientation='horizontal', label=label, **self.hist_kwargs)
-        if self.truths != None:
-            marker = None
-            if 'marker' in self.truths_kwargs: # remove any marker for line
-                marker = self.truths_kwargs.pop('marker')
-            self.histvert[-1].axhline(self.truths[-1], **self.truths_kwargs)
-            if marker != None:
-                self.truths_kwargs['marker'] = marker
+        if self.truths is not None:
+            if self.truths[-1] is not None:
+                marker = None
+                if 'marker' in self.truths_kwargs: # remove any marker for line
+                    marker = self.truths_kwargs.pop('marker')
+                self.histvert[-1].axhline(self.truths[-1], **self.truths_kwargs)
+                if marker is not None:
+                    self.truths_kwargs['marker'] = marker
 
         # put legend in the upper right plot
         _, l1 = self.histvert[-1].get_legend_handles_labels()
-        if self.legend_labels != None:
+        if self.legend_labels is not None:
             if self.hist_kwargs['histtype'] == 'stepfilled':
                 lc = self.hist_kwargs['edgecolor']
             else:
@@ -398,7 +408,7 @@ class scotchcorner:
             self.legendaxis.legend(self.legend_labels, l1, loc='best', fancybox=True, framealpha=0.4)
         else:
             self.legendaxis.legend(self.legend_labels, l1, loc='lower left')
-        if self.labels != None:
+        if self.labels is not None:
             self.histvert[-1].set_ylabel(self.labels[-1])
             self._axes[self.labels[-1]] = self.histvert[-1]
 
@@ -417,11 +427,11 @@ class scotchcorner:
                 these_scatter_kwargs[key] = self.scatter_kwargs[key]
             self.scatter_kwargs = these_scatter_kwargs
         
-        if self.limits != None:
+        if self.limits is not None:
             if len(self.limits) != self.ndims:
                 raise("Error... number of dimensions is not the same as the number of limits being set")
         
-        if self.contourlimits != None:
+        if self.contourlimits is not None:
             if len(self.contourlimits) != self.ndims:
                 raise("Error... number of dimensions is not the same as the number of contour limits being set")
         
@@ -444,19 +454,20 @@ class scotchcorner:
                 xmin, xmax = self.histhori[i].get_xlim()
                 self.histvert[i-1].set_ylim([xmin, xmax])
             
-            if self.labels != None:
+            if self.labels is not None:
                 self.histhori[i].set_xlabel(self.labels[i])
                 self._axes[self.labels[i]] = self.histhori[i]
-            if self.truths != None:
-                marker = None
-                if 'marker' in self.truths_kwargs: # remove any marker for line
-                    marker = self.truths_kwargs.pop('marker')
-                self.histhori[i].axvline(self.truths[i], **self.truths_kwargs)
-                if marker != None:
-                    self.truths_kwargs['marker'] = marker
+            if self.truths is not None:
+                if self.truths[i] is not None:
+                    marker = None
+                    if 'marker' in self.truths_kwargs: # remove any marker for line
+                        marker = self.truths_kwargs.pop('marker')
+                    self.histhori[i].axvline(self.truths[i], **self.truths_kwargs)
+                    if marker is not None:
+                        self.truths_kwargs['marker'] = marker
 
             for j in range(i+1):
-                if self.labels != None:
+                if self.labels is not None:
                     if j == 0:
                         self.histvert[rowcount].set_ylabel(self.labels[i+1])
                         rowcount += 1
@@ -467,11 +478,18 @@ class scotchcorner:
                 self.jointaxes_indices.append((j, i+1))
 
                 if self.showpoints:
-                    self.jointaxes[jointcount].scatter(data[:,j], data[:,i+1], **self.scatter_kwargs) # plot scatter
+                    if self.thinpoints < 1. or self.thinpoints > data.shape[0]:
+                        raise("Error... Thinning factor is less than 1 or greater than the total number of data points")
+                    if self.thinpermutation is None: # select points randomly for thinning
+                        nthinpoints = int(data.shape[0]/self.thinpoints)
+                        permutepoints = np.random.permutation(np.arange(data.shape[0]))[:nthinpoints]
+                        self.thinpermutation = permutepoints
+
+                    self.jointaxes[jointcount].scatter(data[self.thinpermutation,j], data[self.thinpermutation,i+1], **self.scatter_kwargs) # plot scatter
 
                 if self.showcontours:
                     xlow = xhigh = ylow = yhigh = None # default limits
-                    if self.contourlimits != None:
+                    if self.contourlimits is not None:
                       if len(self.contourlimits[j]) == 2:
                         xlow = self.contourlimits[j][0]
                         xhigh = self.contourlimits[j][1]
@@ -481,12 +499,13 @@ class scotchcorner:
 
                     self.plot_bounded_2d_kde_contours(self.jointaxes[jointcount], np.vstack((data[:,j], data[:,i+1])).T, xlow=xlow, xhigh=xhigh, ylow=ylow, yhigh=yhigh)
 
-                if self.truths != None:
-                    markertmp = None
-                    if 'marker' not in self.truths_kwargs:
-                        self.truths_kwargs['marker'] = 'x'
+                if self.truths is not None:
+                    if self.truths[j] is not None and self.truths[i+1] is not None:
+                        markertmp = None
+                        if 'marker' not in self.truths_kwargs:
+                            self.truths_kwargs['marker'] = 'x'
 
-                    self.jointaxes[jointcount].plot(self.truths[j], self.truths[i+1], **self.truths_kwargs)
+                        self.jointaxes[jointcount].plot(self.truths[j], self.truths[i+1], **self.truths_kwargs)
 
                 jointcount += 1
 
@@ -518,7 +537,7 @@ class scotchcorner:
             self.format_exponents_in_label_single_ax(ax.yaxis)
 
             # set limits
-            if self.limits != None:
+            if self.limits is not None:
                 if len(self.limits[self.histvert_indices[i]]) == 2:
                     ymin, ymax = ax.get_ylim() # get current limits
                     yminnew, ymaxnew = self.limits[self.histvert_indices[i]]
@@ -540,7 +559,7 @@ class scotchcorner:
             self.format_exponents_in_label_single_ax(ax.xaxis)
 
             # set limits
-            if self.limits != None:
+            if self.limits is not None:
                 if len(self.limits[self.histhori_indices[i]]) == 2:
                     xmin, xmax = ax.get_xlim() # get current limits
                     xminnew, xmaxnew = self.limits[self.histhori_indices[i]] 
@@ -561,7 +580,7 @@ class scotchcorner:
             ax.xaxis.offsetText.set_visible(False)
             ax.yaxis.offsetText.set_visible(False)
 
-            if self.limits != None:
+            if self.limits is not None:
                 if len(self.limits[self.jointaxes_indices[i][0]]) == 2:
                     xmin, xmax = ax.get_xlim() # get current limits
                     xminnew, xmaxnew = self.limits[self.jointaxes_indices[i][0]]
@@ -582,7 +601,7 @@ class scotchcorner:
                     ax.set_ylim([yminnew-dy, ymaxnew+dy])
 
     def plot_bounded_2d_kde_contours(self, ax, pts, xlow=None, xhigh=None, ylow=None, yhigh=None, transform=None, gridsize=250, clip=None):
-        """Function (based on that in `plotutils` by `Will Farr <https://github.com/farr>`_) and edited by `Ben Farr <https://github.com/bfarr>`_) for plotting contours from a bounded 2d KDE"""
+        """Function (based on that in `plotutils` by `Will Farr <https://github.com/farr>`_ and edited by `Ben Farr <https://github.com/bfarr>`_) for plotting contours from a bounded 2d KDE"""
 
         if transform is None:
             transform = lambda x: x
