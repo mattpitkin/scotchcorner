@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -328,7 +328,7 @@ class scotchcorner:
         # check for alpha of filled histogram plot
         if self.hist_kwargs['histtype'] == 'stepfilled':
             self._check_alpha()
-        
+
         # create plots
         self._add_plots(data, label=datatitle)
         
@@ -373,6 +373,9 @@ class scotchcorner:
         
         Label is a legend label if required.
         """
+
+        # make sure data has enough dimensions (and convert pandas.DataFrame to numpy ndarray)
+        data = np.atleast_1d(data)
 
         # set default truth style
         if self.truths is not None:
