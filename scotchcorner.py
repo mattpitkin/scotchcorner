@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -187,7 +187,7 @@ class scotchcorner:
         # get number of dimensions in the data
         self.ndims = data.shape[1] # get number of dimensions in data
         self.ratio = ratio
-        if isintance(data, pd.DataFrame):
+        if isinstance(data, pd.DataFrame):
           self.labels = data.columns
         else:
           self.labels = labels
