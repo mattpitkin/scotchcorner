@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -346,6 +346,8 @@ class scotchcorner:
         if 'bins' not in self.hist_kwargs:
             # set default number of bins to 20
             self.hist_kwargs['bins'] = 20
+        if 'linewidth' not in self.hist_kwargs:
+            self.hist_kwargs['linewidth'] = 1.5
         self.truths = truths
         if self.truths is not None:
             if len(self.truths) != self.ndims: # must be same number of true values as parameters
