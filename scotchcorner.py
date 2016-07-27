@@ -1,10 +1,11 @@
 from __future__ import print_function, division
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
 import numpy as np
+import pandas as pd
 import scipy.stats as ss
 
 import matplotlib as mpl
@@ -124,14 +125,15 @@ class scotchcorner:
     
     Parameters
     ----------
-    data : :class:`numpy.ndarray`
+    data : :class:`numpy.ndarray` or :class:`pandas.DataFrame`
         A (`N` x `ndims`) array of values for the `ndims` parameters
     bins : int, optional, default: 20
         The number of bins in the 1D histogram plots
     ratio : int, optional, default: 3
         The ratio of the size of 1D histograms to the size of the joint plots
     labels : list, optional
-        A list of names for each of the `ndims` parameters
+        A list of names for each of the `ndims` parameters.  These are used for the axes labels. If `data` is a
+        :class:`pandas.DataFrame` then the column names of that will be used instead.
     truths : list, optional
         A list of the true values of each parameter
     datatitle : string, optional
@@ -185,7 +187,10 @@ class scotchcorner:
         # get number of dimensions in the data
         self.ndims = data.shape[1] # get number of dimensions in data
         self.ratio = ratio
-        self.labels = labels
+        if isintance(data, pd.DataFrame):
+          self.labels = data.columns
+        else:
+          self.labels = labels
         self.truths = truths                 # true values for each parameter in data
         self.truths_kwargs = truths_kwargs
         if self.truths is not None:
