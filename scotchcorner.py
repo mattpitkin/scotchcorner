@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-__version__ = "0.1.6"
+__version__ = "0.1.7"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -469,7 +469,7 @@ class scotchcorner:
             subval = 0.
             if self.subtract_truths is not None and self.truths is not None:
                 if i in self.subtract_truths and self.truths[i] is not None:
-                    subvali = self.truths[i]
+                    subval = self.truths[i]
 
             self.histhori[i].hist(data[:,i]-subval, normed=True, **self.hist_kwargs)
             
@@ -499,7 +499,7 @@ class scotchcorner:
                     self._axes[self.labels[j]+'vs'+self.labels[i+1]] = self.jointaxes[jointcount]
 
                 # check if subtracting the true values from the distribution
-                subvals = (0., 0.)
+                subvals = [0., 0.]
                 if self.subtract_truths is not None and self.truths is not None:
                     if self.truths[j] is not None and j in self.subtract_truths:
                         subvals[0] = self.truths[j]
