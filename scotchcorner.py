@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-__version__ = "0.1.5"
+__version__ = "0.1.6"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -134,7 +134,7 @@ class scotchcorner:
     labels : list, optional
         A list of names for each of the `ndims` parameters.  These are used for the axes labels. If `data` is a
         :class:`pandas.DataFrame` then the column names of that will be used instead.
-    truths : list, optional
+    truths : list, optional, default: None
         A list of the true values of each parameter
     datatitle : string, optional
         A title for the data set to be added as a legend
@@ -173,6 +173,9 @@ class scotchcorner:
         A list of tuples giving the lower and upper limits for each parameter for use when creating credible
         interval contour for joint plots. If limits for some parameters are not known/required then an empty
         tuple (or `None` within a two value tuple) must be placed in the list for that parameter
+    subtract_truths : list or tuple, optional, default: None
+        A list/tuple of indices of parameters for which you want to show the distribution centred such that
+        true value is zero. This is only relevent if `truths` are supplied.
     figsize : tuple
         A two value tuple giving the figure size
     mplparams : dict
@@ -183,7 +186,7 @@ class scotchcorner:
                  limlinestyle='dotted', showpoints=True, showcontours=False, hist_kwargs={}, truths_kwargs={},
                  scatter_kwargs={}, contour_kwargs={}, contour_levels=[0.5, 0.9], show_level_labels=True,
                  use_math_text=True, limits=None, contour_limits=None, figsize=None, mplparams=None,
-                 thinpoints=1.0):
+                 thinpoints=1.0, subtract_truths=None):
         # get number of dimensions in the data
         self.ndims = data.shape[1] # get number of dimensions in data
         self.ratio = ratio
@@ -196,6 +199,7 @@ class scotchcorner:
         if self.truths is not None:
             if len(self.truths) != self.ndims: # must be same number of true values as parameters
                 self.truths = None
+        self.subtract_truths = subtract_truths
         self.levels = contour_levels
         self.showpoints = showpoints
         self.thinpoints = thinpoints
@@ -396,13 +400,17 @@ class scotchcorner:
                 self.truths_kwargs['linewidth'] = 1.5
 
         # the vertical histogram
-        self.histvert[-1].hist(data[:,-1], normed=True, orientation='horizontal', label=label, **self.hist_kwargs)
+        subval = 0. # value to subtract from distribution (to centre truth value at 0)
+        if self.subtract_truths is not None and self.truths is not None:
+            if len(self.truths)-1 in self.subtract_truths and self.truths[-1] is not None:
+                subval = self.truths[-1]
+        self.histvert[-1].hist(data[:,-1]-subval, normed=True, orientation='horizontal', label=label, **self.hist_kwargs)
         if self.truths is not None:
             if self.truths[-1] is not None:
                 marker = None
                 if 'marker' in self.truths_kwargs: # remove any marker for line
                     marker = self.truths_kwargs.pop('marker')
-                self.histvert[-1].axhline(self.truths[-1], **self.truths_kwargs)
+                self.histvert[-1].axhline(self.truths[-1]-subval, **self.truths_kwargs)
                 if marker is not None:
                     self.truths_kwargs['marker'] = marker
 
@@ -457,7 +465,13 @@ class scotchcorner:
         jointcount = 0
         rowcount = 0
         for i in range(self.ndims-1):
-            self.histhori[i].hist(data[:,i], normed=True, **self.hist_kwargs)
+            # check if subtracting the true values from the distribution
+            subval = 0.
+            if self.subtract_truths is not None and self.truths is not None:
+                if i in self.subtract_truths and self.truths[i] is not None:
+                    subvali = self.truths[i]
+
+            self.histhori[i].hist(data[:,i]-subval, normed=True, **self.hist_kwargs)
             
             # make sure axes ranges on vertical histograms match those on the equivalent horizontal histograms
             if i > 0:
@@ -472,7 +486,7 @@ class scotchcorner:
                     marker = None
                     if 'marker' in self.truths_kwargs: # remove any marker for line
                         marker = self.truths_kwargs.pop('marker')
-                    self.histhori[i].axvline(self.truths[i], **self.truths_kwargs)
+                    self.histhori[i].axvline(self.truths[i]-subval, **self.truths_kwargs)
                     if marker is not None:
                         self.truths_kwargs['marker'] = marker
 
@@ -483,6 +497,14 @@ class scotchcorner:
                         rowcount += 1
 
                     self._axes[self.labels[j]+'vs'+self.labels[i+1]] = self.jointaxes[jointcount]
+
+                # check if subtracting the true values from the distribution
+                subvals = (0., 0.)
+                if self.subtract_truths is not None and self.truths is not None:
+                    if self.truths[j] is not None and j in self.subtract_truths:
+                        subvals[0] = self.truths[j]
+                    if self.truths[i+1] is not None and i+1 in self.subtract_truths:
+                        subvals[1] = self.truths[i+1]
 
                 # get joint axes indices
                 self.jointaxes_indices.append((j, i+1))
@@ -495,7 +517,7 @@ class scotchcorner:
                         permutepoints = np.random.permutation(np.arange(data.shape[0]))[:nthinpoints]
                         self.thinpermutation = permutepoints
 
-                    self.jointaxes[jointcount].scatter(data[self.thinpermutation,j], data[self.thinpermutation,i+1], **self.scatter_kwargs) # plot scatter
+                    self.jointaxes[jointcount].scatter(data[self.thinpermutation,j]-subvals[0], data[self.thinpermutation,i+1]-subvals[1], **self.scatter_kwargs) # plot scatter
 
                 if self.showcontours:
                     xlow = xhigh = ylow = yhigh = None # default limits
@@ -507,7 +529,7 @@ class scotchcorner:
                         ylow = self.contourlimits[i+1][0]
                         yhigh = self.contourlimits[i+1][1]
 
-                    self.plot_bounded_2d_kde_contours(self.jointaxes[jointcount], np.vstack((data[:,j], data[:,i+1])).T, xlow=xlow, xhigh=xhigh, ylow=ylow, yhigh=yhigh)
+                    self.plot_bounded_2d_kde_contours(self.jointaxes[jointcount], np.vstack((data[:,j]-subvals[0], data[:,i+1]-subvals[1])).T, xlow=xlow, xhigh=xhigh, ylow=ylow, yhigh=yhigh)
 
                 if self.truths is not None:
                     if self.truths[j] is not None and self.truths[i+1] is not None:
@@ -515,7 +537,7 @@ class scotchcorner:
                         if 'marker' not in self.truths_kwargs:
                             self.truths_kwargs['marker'] = 'x'
 
-                        self.jointaxes[jointcount].plot(self.truths[j], self.truths[i+1], **self.truths_kwargs)
+                        self.jointaxes[jointcount].plot(self.truths[j]-subvals[0], self.truths[i+1]-subvals[1], **self.truths_kwargs)
 
                 jointcount += 1
 
