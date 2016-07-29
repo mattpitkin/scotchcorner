@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-__version__ = "0.1.7"
+__version__ = "0.1.8"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -558,21 +558,49 @@ class scotchcorner:
         Set some formatting of the axes
         """
         pl.draw() # force labels to be drawn
-        
-        # move exponents into label
+
+        theselimits = None
+        if self.limits is not None:
+            theselimits = list(self.limits) # local copy of the limits
+
+        for i, ax in enumerate(self.histhori):
+            [l.set_rotation(45) for l in ax.get_xticklabels()]
+            ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=self.use_math_text))
+            self.format_exponents_in_label_single_ax(ax.xaxis) # move exponents into label
+
+            # set limits
+            if theselimits is not None:
+                xmin, xmax = ax.get_xlim() # get current limits
+                if len(theselimits[self.histhori_indices[i]]) == 2:
+                    xminnew, xmaxnew = theselimits[self.histhori_indices[i]] 
+                    if xminnew == None:
+                        xminnew = xmin
+                    elif xminnew < xmin: # use the greater bound
+                        xminnew = xmin
+                    if xmaxnew == None:
+                        xmaxnew = xmax
+                    elif xmaxnew > xmax: # use the smaller bound
+                        xmaxnew = xmax
+                    #dx = 0.025*(xmaxnew-xminnew) # add a little bit of space
+                    #ax.set_xlim([xminnew-dx, xmaxnew+dx])
+                    ax.set_xlim([xminnew, xmaxnew])
+                    theselimits[self.histhori_indices[i]] = [xminnew, xmaxnew] # reset local copy of limits to these values (so vertical hists and joint axes have the same ranges)
+                else:
+                    theselimits[self.histhori_indices[i]] = [xmin, xmax] # set the local copy of limits, (so vertical hists and joint axes have the same ranges)
+
         for i, ax in enumerate(self.histvert):
             #[l.set_rotation(45) for l in ax.get_yticklabels()]
             if i < len(self.histvert)-1:
                 nbins = len(ax.get_yticklabels())
                 ax.yaxis.set_major_locator(MaxNLocator(nbins=nbins, prune='lower')) # remove lower tick to avoid overlapping labels
             ax.yaxis.set_major_formatter(ScalarFormatter(useMathText=self.use_math_text))
-            self.format_exponents_in_label_single_ax(ax.yaxis)
+            self.format_exponents_in_label_single_ax(ax.yaxis) # move exponents into label
 
             # set limits
-            if self.limits is not None:
-                if len(self.limits[self.histvert_indices[i]]) == 2:
+            if theselimits is not None:
+                if len(theselimits[self.histvert_indices[i]]) == 2:
                     ymin, ymax = ax.get_ylim() # get current limits
-                    yminnew, ymaxnew = self.limits[self.histvert_indices[i]]
+                    yminnew, ymaxnew = theselimits[self.histvert_indices[i]]
                     if yminnew == None:
                         yminnew = ymin
                     elif yminnew < ymin: # use the greater bound
@@ -585,46 +613,24 @@ class scotchcorner:
                     #ax.set_ylim([yminnew-dy, ymaxnew+dy])
                     ax.set_ylim([yminnew, ymaxnew])
 
-        for i, ax in enumerate(self.histhori):
-            [l.set_rotation(45) for l in ax.get_xticklabels()]
-            ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=self.use_math_text))
-            self.format_exponents_in_label_single_ax(ax.xaxis)
-
-            # set limits
-            if self.limits is not None:
-                if len(self.limits[self.histhori_indices[i]]) == 2:
-                    xmin, xmax = ax.get_xlim() # get current limits
-                    xminnew, xmaxnew = self.limits[self.histhori_indices[i]] 
-                    if xminnew == None:
-                        xminnew = xmin
-                    elif xminnew < xmin: # use the greater bound
-                        xminnew = xmin
-                    if xmaxnew == None:
-                        xmaxnew = xmax
-                    elif xmaxnew > xmax: # use the smaller bound
-                        xmaxnew = xmax
-                    #dx = 0.025*(xmaxnew-xminnew) # add a little bit of space
-                    #ax.set_xlim([xminnew-dx, xmaxnew+dx])
-                    ax.set_xlim([xminnew, xmaxnew])
-        
-        # remove any offset text from shared axes caused by the scalar formatter for MathText
         for i, ax in enumerate(self.jointaxes):
+            # remove any offset text from shared axes caused by the scalar formatter for MathText
             ax.xaxis.offsetText.set_visible(False)
             ax.yaxis.offsetText.set_visible(False)
 
-            if self.limits is not None:
-                if len(self.limits[self.jointaxes_indices[i][0]]) == 2:
+            if theselimits is not None:
+                if len(theselimits[self.jointaxes_indices[i][0]]) == 2:
                     xmin, xmax = ax.get_xlim() # get current limits
-                    xminnew, xmaxnew = self.limits[self.jointaxes_indices[i][0]]
+                    xminnew, xmaxnew = theselimits[self.jointaxes_indices[i][0]]
                     if xminnew == None:
                         xminnew = xmin
                     if xmaxnew == None:
                         xmaxnew = xmax
                     dx = 0.02*(xmaxnew-xminnew) # add a little bit of space
                     ax.set_xlim([xminnew-dx, xmaxnew+dx])
-                if len(self.limits[self.jointaxes_indices[i][1]]) == 2:
+                if len(theselimits[self.jointaxes_indices[i][1]]) == 2:
                     ymin, ymax = ax.get_ylim() # get current limits
-                    yminnew, ymaxnew = self.limits[self.jointaxes_indices[i][1]]
+                    yminnew, ymaxnew = theselimits[self.jointaxes_indices[i][1]]
                     if yminnew == None:
                         yminnew = ymin
                     if ymaxnew == None:
