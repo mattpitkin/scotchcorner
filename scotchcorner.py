@@ -1,19 +1,132 @@
 from __future__ import print_function, division
 
-__version__ = "0.1.8"
+__version__ = "0.1.10"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
 import numpy as np
 import pandas as pd
 import scipy.stats as ss
+import math
 
 import matplotlib as mpl
 from matplotlib import pyplot as pl
 from matplotlib.lines import Line2D
-from matplotlib.ticker import ScalarFormatter, MaxNLocator
+from matplotlib.ticker import ScalarFormatter, Locator, Base
 import matplotlib.gridspec as gridspec
+from matplotlib import transforms as mtransforms
 from matplotlib import patheffects as PathEffects
+
+
+class CustomMaxNLocator(Locator):
+    """
+    Select no more than N intervals at nice locations. This class is copied and modified from the MaxNLocator class
+    in matplotlib v2.0.0, which allows a minimum number of ticks (but which MaxNLocator in v1.5.1
+    does not allow). It does not have all the options and so some have default values.
+    """
+    default_params = dict(nbins=10,  min_n_ticks=2)
+
+    def __init__(self, *args, **kwargs):
+        """
+        Keyword args:
+        *nbins*
+            Maximum number of intervals; one less than max number of
+            ticks.  If the string `'auto'`, the number of bins will be
+            automatically determined based on the length of the axis.
+        *min_n_ticks*
+            While the estimated number of ticks is less than the minimum,
+            the target value *nbins* is incremented and the ticks are
+            recalculated.
+        """
+        if args:
+            kwargs['nbins'] = args[0]
+            if len(args) > 1:
+                raise ValueError(
+                    "Keywords are required for all arguments except 'nbins'")
+        self.set_params(**self.default_params)
+        self.set_params(**kwargs)
+
+    def set_params(self, **kwargs):
+        """Set parameters within this locator."""
+        if 'nbins' in kwargs:
+            self._nbins = kwargs['nbins']
+            if self._nbins != 'auto':
+                self._nbins = int(self._nbins)
+        self._steps = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]
+        if 'min_n_ticks' in kwargs:
+            self._min_n_ticks = max(1, kwargs['min_n_ticks'])
+
+    def _raw_ticks(self, vmin, vmax):
+        if self._nbins == 'auto':
+            nbins = max(min(self.axis.get_tick_space(), 9),
+                        max(1, self._min_n_ticks - 1))
+        else:
+            nbins = self._nbins
+
+        while True:
+            ticks = self._try_raw_ticks(vmin, vmax, nbins)
+            nticks = ((ticks <= vmax) & (ticks >= vmin)).sum()
+            if nticks >= self._min_n_ticks:
+                break
+            nbins += 1
+
+        self._nbins_used = nbins  # Maybe useful for troubleshooting.
+        return ticks
+
+    def _try_raw_ticks(self, vmin, vmax, nbins):
+        scale, offset = self.scale_range(vmin, vmax, nbins)
+        vmin = vmin - offset
+        vmax = vmax - offset
+        raw_step = (vmax - vmin) / nbins
+        scaled_raw_step = raw_step / scale
+        best_vmax = vmax
+        best_vmin = vmin
+
+        steps = (x for x in self._steps if x >= scaled_raw_step)
+        for step in steps:
+            step *= scale
+            best_vmin = vmin // step * step
+            best_vmax = best_vmin + step * nbins
+            if best_vmax >= vmax:
+                break
+
+        # More than nbins may be required, e.g. vmin, vmax = -4.1, 4.1 gives
+        # nbins=9 but 10 bins are actually required after rounding.  So we just
+        # create the bins that span the range we need instead.
+        low = round(Base(step).le(vmin - best_vmin) / step)
+        high = round(Base(step).ge(vmax - best_vmin) / step)
+        return np.arange(low, high + 1) * step + best_vmin + offset
+
+    def bin_boundaries(self, vmin, vmax):
+        return self._raw_ticks(vmin, vmax)
+
+    def __call__(self):
+        vmin, vmax = self.axis.get_view_interval()
+        return self.tick_values(vmin, vmax)
+
+    def tick_values(self, vmin, vmax):
+        vmin, vmax = mtransforms.nonsingular(
+            vmin, vmax, expander=1e-13, tiny=1e-14)
+        locs = self._raw_ticks(vmin, vmax)
+        return self.raise_if_exceeds(locs)
+
+    def view_limits(self, dmin, dmax):
+        dmin, dmax = mtransforms.nonsingular(
+            dmin, dmax, expander=1e-12, tiny=1e-13)
+
+        return self._raw_ticks(dmin, dmax)[[0, -1]]
+
+    def scale_range(self, vmin, vmax, n=1, threshold=100):
+        # scale_range function from matplotlib ticker.py
+        dv = abs(vmax - vmin)  # > 0 as nonsingular is called before.
+        meanv = (vmax + vmin) / 2
+        if abs(meanv) / dv < threshold:
+            offset = 0
+        else:
+            offset = math.copysign(10 ** (math.log10(abs(meanv)) // 1), meanv)
+        scale = 10 ** (math.log10(dv / n) // 1)
+        return scale, offset
+
 
 # A bounded KDE class (inherited from the SciPy Gaussian KDE class) created by Ben Farr @bfarr
 class Bounded_2d_kde(ss.gaussian_kde):
@@ -306,7 +419,7 @@ class scotchcorner:
                 axh.spines['right'].set_visible(False)  # remove right border
             axh.set_yticklabels([])
             axh.set_yticks([])
-            axh.xaxis.set_ticks_position('bottom') # just show ticks on left
+            axh.xaxis.set_ticks_position('bottom') # just show ticks on bottom
             self.histhori.append(axh)
                 
             # joint plots
@@ -564,8 +677,15 @@ class scotchcorner:
             theselimits = list(self.limits) # local copy of the limits
 
         for i, ax in enumerate(self.histhori):
+            nbins = min([len(ax.get_xticklabels()), 5]) # make sure there are at least 4 tick marks (after removal of one) and a max of 7
+            ax.xaxis.set_major_locator(CustomMaxNLocator(nbins=7, min_n_ticks=nbins))
             [l.set_rotation(45) for l in ax.get_xticklabels()]
-            ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=self.use_math_text))
+            # remove the lower tick label to avoid overlapping labels
+            if i > 0:
+                xticks = ax.xaxis.get_major_ticks()
+                xticks[0].label1.set_visible(False)
+            formater = ScalarFormatter(useMathText=self.use_math_text)
+            ax.xaxis.set_major_formatter(formater)
             self.format_exponents_in_label_single_ax(ax.xaxis) # move exponents into label
 
             # set limits
@@ -590,9 +710,12 @@ class scotchcorner:
 
         for i, ax in enumerate(self.histvert):
             #[l.set_rotation(45) for l in ax.get_yticklabels()]
+            nbins = min([len(ax.get_yticklabels()), 5]) # make sure there are at least 4 tick marks (after removal of one) and a max of 7
+            ax.yaxis.set_major_locator(CustomMaxNLocator(nbins=7, min_n_ticks=nbins))
+            # remove lower tick to avoid overlapping labels
             if i < len(self.histvert)-1:
-                nbins = len(ax.get_yticklabels())
-                ax.yaxis.set_major_locator(MaxNLocator(nbins=nbins, prune='lower')) # remove lower tick to avoid overlapping labels
+                yticks = ax.yaxis.get_major_ticks()
+                yticks[0].label1.set_visible(False)
             ax.yaxis.set_major_formatter(ScalarFormatter(useMathText=self.use_math_text))
             self.format_exponents_in_label_single_ax(ax.yaxis) # move exponents into label
 
