@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-__version__ = "0.1.10"
+__version__ = "0.1.11"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -24,7 +24,7 @@ class CustomMaxNLocator(Locator):
     in matplotlib v2.0.0, which allows a minimum number of ticks (but which MaxNLocator in v1.5.1
     does not allow). It does not have all the options and so some have default values.
     """
-    default_params = dict(nbins=10,  min_n_ticks=2)
+    default_params = dict(nbins=10, prune=None, min_n_ticks=2)
 
     def __init__(self, *args, **kwargs):
         """
@@ -37,6 +37,15 @@ class CustomMaxNLocator(Locator):
             While the estimated number of ticks is less than the minimum,
             the target value *nbins* is incremented and the ticks are
             recalculated.
+        *prune*
+            ['lower' | 'upper' | 'both' | None]
+            Remove edge ticks -- useful for stacked or ganged plots
+            where the upper tick of one axes overlaps with the lower
+            tick of the axes above it.
+            If prune=='lower', the smallest tick will
+            be removed.  If prune=='upper', the largest tick will be
+            removed.  If prune=='both', the largest and smallest ticks
+            will be removed.  If prune==None, no ticks will be removed.
         """
         if args:
             kwargs['nbins'] = args[0]
@@ -53,6 +62,11 @@ class CustomMaxNLocator(Locator):
             if self._nbins != 'auto':
                 self._nbins = int(self._nbins)
         self._steps = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]
+        if 'prune' in kwargs:
+            prune = kwargs['prune']
+            if prune is not None and prune not in ['upper', 'lower', 'both']:
+                raise ValueError("prune must be 'upper', 'lower', 'both', or None")
+            self._prune = prune
         if 'min_n_ticks' in kwargs:
             self._min_n_ticks = max(1, kwargs['min_n_ticks'])
 
@@ -108,6 +122,13 @@ class CustomMaxNLocator(Locator):
         vmin, vmax = mtransforms.nonsingular(
             vmin, vmax, expander=1e-13, tiny=1e-14)
         locs = self._raw_ticks(vmin, vmax)
+        prune = self._prune
+        if prune == 'lower':
+            locs = locs[1:]
+        elif prune == 'upper':
+            locs = locs[:-1]
+        elif prune == 'both':
+            locs = locs[1:-1]
         return self.raise_if_exceeds(locs)
 
     def view_limits(self, dmin, dmax):
@@ -677,17 +698,6 @@ class scotchcorner:
             theselimits = list(self.limits) # local copy of the limits
 
         for i, ax in enumerate(self.histhori):
-            nbins = min([len(ax.get_xticklabels()), 5]) # make sure there are at least 4 tick marks (after removal of one) and a max of 7
-            ax.xaxis.set_major_locator(CustomMaxNLocator(nbins=7, min_n_ticks=nbins))
-            [l.set_rotation(45) for l in ax.get_xticklabels()]
-            # remove the lower tick label to avoid overlapping labels
-            if i > 0:
-                xticks = ax.xaxis.get_major_ticks()
-                xticks[0].label1.set_visible(False)
-            formater = ScalarFormatter(useMathText=self.use_math_text)
-            ax.xaxis.set_major_formatter(formater)
-            self.format_exponents_in_label_single_ax(ax.xaxis) # move exponents into label
-
             # set limits
             if theselimits is not None:
                 xmin, xmax = ax.get_xlim() # get current limits
@@ -707,18 +717,18 @@ class scotchcorner:
                     theselimits[self.histhori_indices[i]] = [xminnew, xmaxnew] # reset local copy of limits to these values (so vertical hists and joint axes have the same ranges)
                 else:
                     theselimits[self.histhori_indices[i]] = [xmin, xmax] # set the local copy of limits, (so vertical hists and joint axes have the same ranges)
+            
+            nbins = min([len(ax.get_xticklabels()), 5]) # make sure there are at least 4 tick marks (after removal of one) and a max of 7
+            prune = None
+            if i > 0: # remove the lower tick label to avoid overlapping labels
+                prune = 'lower'
+            ax.xaxis.set_major_locator(CustomMaxNLocator(nbins=7, min_n_ticks=nbins, prune=prune))
+            [l.set_rotation(45) for l in ax.get_xticklabels()]
+            ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=self.use_math_text))
+            self.format_exponents_in_label_single_ax(ax.xaxis) # move exponents into label
 
         for i, ax in enumerate(self.histvert):
             #[l.set_rotation(45) for l in ax.get_yticklabels()]
-            nbins = min([len(ax.get_yticklabels()), 5]) # make sure there are at least 4 tick marks (after removal of one) and a max of 7
-            ax.yaxis.set_major_locator(CustomMaxNLocator(nbins=7, min_n_ticks=nbins))
-            # remove lower tick to avoid overlapping labels
-            if i < len(self.histvert)-1:
-                yticks = ax.yaxis.get_major_ticks()
-                yticks[0].label1.set_visible(False)
-            ax.yaxis.set_major_formatter(ScalarFormatter(useMathText=self.use_math_text))
-            self.format_exponents_in_label_single_ax(ax.yaxis) # move exponents into label
-
             # set limits
             if theselimits is not None:
                 if len(theselimits[self.histvert_indices[i]]) == 2:
@@ -735,6 +745,14 @@ class scotchcorner:
                     #dy = 0.025*(ymaxnew-yminnew) # add a little bit of space
                     #ax.set_ylim([yminnew-dy, ymaxnew+dy])
                     ax.set_ylim([yminnew, ymaxnew])
+
+            nbins = min([len(ax.get_yticklabels()), 5]) # make sure there are at least 4 tick marks (after removal of one) and a max of 7
+            prune = None # remove lower tick to avoid overlapping labels
+            if i < len(self.histvert)-1:
+                prune = 'lower'
+            ax.yaxis.set_major_locator(CustomMaxNLocator(nbins=7, min_n_ticks=nbins, prune=prune))
+            ax.yaxis.set_major_formatter(ScalarFormatter(useMathText=self.use_math_text))
+            self.format_exponents_in_label_single_ax(ax.yaxis) # move exponents into label
 
         for i, ax in enumerate(self.jointaxes):
             # remove any offset text from shared axes caused by the scalar formatter for MathText
