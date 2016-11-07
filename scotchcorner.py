@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-__version__ = "0.1.11"
+__version__ = "0.1.12"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -705,11 +705,7 @@ class scotchcorner:
                     xminnew, xmaxnew = theselimits[self.histhori_indices[i]] 
                     if xminnew == None:
                         xminnew = xmin
-                    elif xminnew < xmin: # use the greater bound
-                        xminnew = xmin
                     if xmaxnew == None:
-                        xmaxnew = xmax
-                    elif xmaxnew > xmax: # use the smaller bound
                         xmaxnew = xmax
                     #dx = 0.025*(xmaxnew-xminnew) # add a little bit of space
                     #ax.set_xlim([xminnew-dx, xmaxnew+dx])
@@ -736,11 +732,7 @@ class scotchcorner:
                     yminnew, ymaxnew = theselimits[self.histvert_indices[i]]
                     if yminnew == None:
                         yminnew = ymin
-                    elif yminnew < ymin: # use the greater bound
-                        yminnew = ymin
                     if ymaxnew == None:
-                        ymaxnew = ymax
-                    elif ymaxnew > ymax: # use the smaller bound
                         ymaxnew = ymax
                     #dy = 0.025*(ymaxnew-yminnew) # add a little bit of space
                     #ax.set_ylim([yminnew-dy, ymaxnew+dy])
