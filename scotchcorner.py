@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-__version__ = "0.1.12"
+__version__ = "0.1.13"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -675,8 +675,6 @@ class scotchcorner:
 
                 jointcount += 1
 
-        self._format_axes()
-
     def get_axis(self, param):
         """
         Return the axis for the given "param" (for joint axes "param" should be the required parameters separated by "vs")
@@ -918,7 +916,13 @@ class scotchcorner:
         filename : str, required
             The filename of the figure to save. The figure format is determined by the file extension.
         """
+        self._format_axes()
         self._fig.savefig(filename)
+
+    def show(self):
+        """ Show the figure """
+        self._format_axes()
+        self._fig.show()
 
     @property
     def fig(self):
