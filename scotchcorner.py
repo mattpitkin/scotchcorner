@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-__version__ = "0.1.13"
+__version__ = "0.1.14"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
