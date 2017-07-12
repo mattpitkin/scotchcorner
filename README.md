@@ -36,6 +36,8 @@ Documentation of the code can be found [here](http://scotchcorner.readthedocs.or
 
 If you have any suggestions/contributions for the code please create an issue, or fork and generate a pull request.
 
+[![DOI](https://zenodo.org/badge/48458682.svg)](https://zenodo.org/badge/latestdoi/48458682)
+
 Copyright &copy; 2016 Matthew Pitkin
 
 Release under the MIT License
