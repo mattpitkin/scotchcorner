@@ -10,6 +10,9 @@ Scotchcorner
 
 Documentation for the corner plotting module ``scotchcorner``.
 
+.. image:: https://zenodo.org/badge/48458682.svg
+   :target: https://zenodo.org/badge/latestdoi/48458682
+
 Contents:
 
 .. toctree::
