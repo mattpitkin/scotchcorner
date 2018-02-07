@@ -3,6 +3,7 @@ From: python:3.6-slim
 
 %post
     apt-get update && apt-get -y install python3-tk
+    apt-get -y install --no-install-recommends texlive texlive-latex-extra
     pip install --upgrade pip
     pip install --trusted-host pypi.python.org ipython
     pip install --trusted-host pypi.python.org numpy
