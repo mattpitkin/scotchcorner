@@ -390,9 +390,9 @@ class scotchcorner(object):
         # create figure
         self._fig = pl.figure(figsize=self.figsize)
         self.histhori = []
-        self.histhori_indices = range(0,self.ndims-1) # indexes of parameters in horizontal histograms
+        self.histhori_indices = list(range(0,self.ndims-1)) # indexes of parameters in horizontal histograms
         self.histvert = []
-        self.histvert_indices = range(1,self.ndims) # indexes of parameters in vertical histograms
+        self.histvert_indices = list(range(1,self.ndims)) # indexes of parameters in vertical histograms
         self.jointaxes = []
         self.jointaxes_indices = []
         self._axes = {} # dictionary of axes keyed to parameter names if available
