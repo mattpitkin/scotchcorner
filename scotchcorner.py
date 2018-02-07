@@ -253,10 +253,10 @@ class Bounded_2d_kde(ss.gaussian_kde):
         return results
 
 
-class scotchcorner:
+class scotchcorner(object):
     """
     Create a corner-style plot.
-    
+
     Parameters
     ----------
     data : :class:`numpy.ndarray` or :class:`pandas.DataFrame`
@@ -314,7 +314,7 @@ class scotchcorner:
         A two value tuple giving the figure size
     mplparams : dict
         A dictionary containing matplotlib configuration values
-    
+
     """
     def __init__(self, data, bins=20, ratio=3, labels=None, truths=None, datatitle=None, showlims=None,
                  limlinestyle='dotted', showpoints=True, showcontours=False, hist_kwargs={}, truths_kwargs={},
@@ -325,9 +325,9 @@ class scotchcorner:
         self.ndims = data.shape[1] # get number of dimensions in data
         self.ratio = ratio
         if isinstance(data, pd.DataFrame):
-          self.labels = data.columns
+            self.labels = data.columns
         else:
-          self.labels = labels
+            self.labels = labels
         self.truths = truths                 # true values for each parameter in data
         self.truths_kwargs = truths_kwargs
         if self.truths is not None:
@@ -346,7 +346,7 @@ class scotchcorner:
         self.use_math_text = use_math_text
         self.limits = limits  # a list of tuples giving the lower and upper limits for each parameter - if some values aren't given then an empty tuple must be placed in the list for that value
         self.contourlimits = contour_limits # a list of tuples giving the lower and upper limits for each parameter for use in credible interval contours - if some values aren't given then an empty tuple must be placed in the list for that value
-        
+
         # default figure size (numbers "stolen" from those used in corner.py that are, to quote, "Some magic numbers for pretty axis layout."
         factor = 2.0           # size of one side of one panel
         lbdim = 0.5 * factor   # size of left/bottom margin
@@ -359,7 +359,7 @@ class scotchcorner:
             if isinstance(figsize, tuple):
                 if len(figsize) == 2:
                     self.figsize = figsize
-        
+
         # set plot parameters
         if mplparams == None:
             # set default parameters
@@ -377,7 +377,7 @@ class scotchcorner:
             self.mplparams = mplparams
 
         mpl.rcParams.update(self.mplparams)
-        
+
         # set default hist_kwargs
         self.hist_kwargs = {'bins': bins, 'histtype': 'stepfilled', 'color': 'lightslategrey', 'alpha': 0.4, 'edgecolor': 'lightslategray', 'linewidth': 1.5}
         for key in hist_kwargs.keys(): # set any values input
@@ -396,7 +396,7 @@ class scotchcorner:
         self.jointaxes = []
         self.jointaxes_indices = []
         self._axes = {} # dictionary of axes keyed to parameter names if available
-        
+
         # create grid
         gridsize = self.ratio*(self.ndims-1) + 1
         gs = gridspec.GridSpec(gridsize, gridsize, wspace=0.1, hspace=0.1)
@@ -409,7 +409,7 @@ class scotchcorner:
             pl.setp(self.legendaxis.get_xticklabels(), visible=False) # remove xtick labels
             pl.setp(self.legendaxis.get_yticklabels(), visible=False) # remove ytick labels
             self.legendaxis.tick_params(bottom='off', top='off', left='off', right='off') # remove tick marks
-        
+
         # create figure axes
         for i in range(self.ndims-1):
             # vertical histogram (and empty axes)
@@ -427,7 +427,7 @@ class scotchcorner:
             axv.yaxis.set_ticks_position('left') # just show ticks on left
             self.histvert.append(axv)
             self.histvert_indices.append(i+1)
-                
+
             # horizontal histograms
             axh = self._fig.add_subplot(gs[-1,(i*ratio+1):(1+(i+1)*ratio)])
             axh.spines['top'].set_visible(False)    # remove top border
@@ -442,7 +442,7 @@ class scotchcorner:
             axh.set_yticks([])
             axh.xaxis.set_ticks_position('bottom') # just show ticks on bottom
             self.histhori.append(axh)
-                
+
             # joint plots
             for j in range(i+1):
                 axj = self._fig.add_subplot(gs[i*ratio:(i+1)*ratio,(j*ratio+1):(1+(j+1)*ratio)], sharey=self.histvert[i], 
@@ -462,14 +462,14 @@ class scotchcorner:
                 pl.setp(axj.get_yticklabels(), visible=False) # remove ytick labels
                 axj.tick_params(bottom='off', top='off', left='off', right='off') # remove tick marks 
                 self.jointaxes.append(axj)
-        
+
         # check for alpha of filled histogram plot
         if self.hist_kwargs['histtype'] == 'stepfilled':
             self._check_alpha()
 
         # create plots
         self._add_plots(data, label=datatitle)
-        
+
     def add_data(self, data, hist_kwargs, datatitle=None, showpoints=True, showcontours=False, scatter_kwargs={},
                  contour_kwargs={}, truths=None, truths_kwargs={}, contour_levels=[0.5, 0.9], limits=None,
                  contour_limits = None, show_level_labels=True, thinpoints=1.0):
@@ -606,12 +606,12 @@ class scotchcorner:
                     subval = self.truths[i]
 
             self.histhori[i].hist(data[:,i]-subval, normed=True, **self.hist_kwargs)
-            
+
             # make sure axes ranges on vertical histograms match those on the equivalent horizontal histograms
             if i > 0:
                 xmin, xmax = self.histhori[i].get_xlim()
                 self.histvert[i-1].set_ylim([xmin, xmax])
-            
+
             if self.labels is not None:
                 self.histhori[i].set_xlabel(self.labels[i])
                 self._axes[self.labels[i]] = self.histhori[i]
@@ -656,12 +656,12 @@ class scotchcorner:
                 if self.showcontours:
                     xlow = xhigh = ylow = yhigh = None # default limits
                     if self.contourlimits is not None:
-                      if len(self.contourlimits[j]) == 2:
-                        xlow = self.contourlimits[j][0]
-                        xhigh = self.contourlimits[j][1]
-                      if len(self.contourlimits[i+1]) == 2:
-                        ylow = self.contourlimits[i+1][0]
-                        yhigh = self.contourlimits[i+1][1]
+                        if len(self.contourlimits[j]) == 2:
+                            xlow = self.contourlimits[j][0]
+                            xhigh = self.contourlimits[j][1]
+                        if len(self.contourlimits[i+1]) == 2:
+                            ylow = self.contourlimits[i+1][0]
+                            yhigh = self.contourlimits[i+1][1]
 
                     self.plot_bounded_2d_kde_contours(self.jointaxes[jointcount], np.vstack((data[:,j]-subvals[0], data[:,i+1]-subvals[1])).T, xlow=xlow, xhigh=xhigh, ylow=ylow, yhigh=yhigh)
 
@@ -700,7 +700,7 @@ class scotchcorner:
             if theselimits is not None:
                 xmin, xmax = ax.get_xlim() # get current limits
                 if len(theselimits[self.histhori_indices[i]]) == 2:
-                    xminnew, xmaxnew = theselimits[self.histhori_indices[i]] 
+                    xminnew, xmaxnew = theselimits[self.histhori_indices[i]]
                     if xminnew == None:
                         xminnew = xmin
                     if xmaxnew == None:
@@ -717,7 +717,8 @@ class scotchcorner:
             if i > 0: # remove the lower tick label to avoid overlapping labels
                 prune = 'lower'
             ax.xaxis.set_major_locator(CustomMaxNLocator(nbins=7, min_n_ticks=nbins, prune=prune))
-            [l.set_rotation(45) for l in ax.get_xticklabels()]
+            for l in ax.get_xticklabels():
+                l.set_rotation(45)
             ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=self.use_math_text))
             self.format_exponents_in_label_single_ax(ax.xaxis) # move exponents into label
 
