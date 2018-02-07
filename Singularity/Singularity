@@ -3,7 +3,7 @@ From: python:3.6-slim
 
 %post
     apt-get update && apt-get -y install python3-tk
-    apt-get -y install --no-install-recommends texlive texlive-latex-extra
+    apt-get -y install --no-install-recommends texlive texlive-latex-extra dvipng
     pip install --upgrade pip
     pip install --trusted-host pypi.python.org ipython
     pip install --trusted-host pypi.python.org numpy
@@ -11,3 +11,4 @@ From: python:3.6-slim
     pip install --trusted-host pypi.python.org pandas
     pip install --trusted-host pypi.python.org matplotlib
     mkdir -p /home/scotchcorner
+    cd /home/scotchcorner
