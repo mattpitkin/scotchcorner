@@ -1,6 +1,7 @@
 # scotchcorner
 
 [![GitHub version](https://badge.fury.io/gh/mattpitkin%2Fscotchcorner.svg)](https://badge.fury.io/gh/mattpitkin%2Fscotchcorner)
+[![Build Status](https://travis-ci.org/mattpitkin/scotchcorner.svg?branch=master)](https://travis-ci.org/mattpitkin/scotchcorner)
 
 Greatly inspired by [corner.py](https://github.com/dfm/corner.py), this is an attempt to create a 
 slightly different "corner" plot (and possibly the only one named after a [major junction on
