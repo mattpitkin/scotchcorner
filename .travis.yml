@@ -22,7 +22,7 @@ before_script: # configure a headless display to test plot generation (see https
   - sleep 3 # give xvfb some time to start
 script:
   # try creating a plot
-  - python -c "import sys; import numpy as np; from scotchcorner import scotchcorner as sc; x = np.random.randn(1000,2); labels=[r'\$x\$', r'\$y\$']; cp = sc(x, labels=labels); cp.savefig('test.png'); sys.exit(0)"
+  - python example.py
   # try building documentation
   - cd docs
   - mkdir _static
