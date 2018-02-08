@@ -354,7 +354,8 @@ class scotchcorner(object):
         whspace = 0.05         # w/hspace size
         K = self.ndims - 1. + (1./self.ratio) # different from corner.py to account for histogram ratio
         plotdim = factor * K + factor * (K - 1.) * whspace
-        self.figsize = (lbdim + plotdim + trdim , lbdim + plotdim + trdim) # default figure size
+        dim = lbdim + plotdim + trdim
+        self.figsize = (dim, dim) # default figure size
         if figsize is not None:
             if isinstance(figsize, tuple):
                 if len(figsize) == 2:
@@ -372,14 +373,19 @@ class scotchcorner(object):
                 'font.size': 15,
                 'legend.fontsize': 'medium',
                 'legend.frameon': False,
-                'axes.formatter.limits': (-3,4)}
+                'axes.formatter.limits': (-3, 4)}
         else:
             self.mplparams = mplparams
 
         mpl.rcParams.update(self.mplparams)
 
         # set default hist_kwargs
-        self.hist_kwargs = {'bins': bins, 'histtype': 'stepfilled', 'color': 'lightslategrey', 'alpha': 0.4, 'edgecolor': 'lightslategray', 'linewidth': 1.5}
+        self.hist_kwargs = {'bins': bins,
+                            'histtype': 'stepfilled',
+                            'color': 'lightslategrey',
+                            'alpha': 0.4,
+                            'edgecolor': 'lightslategray',
+                            'linewidth': 1.5}
         for key in hist_kwargs.keys(): # set any values input
             self.hist_kwargs[key] = hist_kwargs[key]
 
@@ -396,6 +402,12 @@ class scotchcorner(object):
         self.jointaxes = []
         self.jointaxes_indices = []
         self._axes = {} # dictionary of axes keyed to parameter names if available
+
+        # format the figure (again this is stolen from corner.py)
+        lb = lbdim / dim
+        tr = (lbdim + plotdim) / dim
+        self._fig.subplots_adjust(left=lb, bottom=lb, right=tr, top=tr, wspace=whspace,
+                                  hspace=whspace)
 
         # create grid
         gridsize = self.ratio*(self.ndims-1) + 1
@@ -445,8 +457,8 @@ class scotchcorner(object):
 
             # joint plots
             for j in range(i+1):
-                axj = self._fig.add_subplot(gs[i*ratio:(i+1)*ratio,(j*ratio+1):(1+(j+1)*ratio)], sharey=self.histvert[i], 
-                                           sharex=self.histhori[j])
+                axj = self._fig.add_subplot(gs[i*ratio:(i+1)*ratio,(j*ratio+1):(1+(j+1)*ratio)],
+                                            sharey=self.histvert[i], sharex=self.histhori[j])
                 if data.shape[1] == 2:
                     # use this as the legend axis
                     self.legendaxis = axj
@@ -470,7 +482,7 @@ class scotchcorner(object):
         # create plots
         self._add_plots(data, label=datatitle)
 
-    def add_data(self, data, hist_kwargs, datatitle=None, showpoints=True, showcontours=False, scatter_kwargs={},
+    def add_data(self, data, hist_kwargs={}, datatitle=None, showpoints=True, showcontours=False, scatter_kwargs={},
                  contour_kwargs={}, truths=None, truths_kwargs={}, contour_levels=[0.5, 0.9], limits=None,
                  contour_limits = None, show_level_labels=True, thinpoints=1.0):
         """
@@ -480,7 +492,10 @@ class scotchcorner(object):
         if data.shape[1] != self.ndims:
             raise("Error... number of dimensions not the same")
 
-        self.hist_kwargs = hist_kwargs
+        # update with any newly supplied histogram keyword arguments
+        for key in hist_kwargs:
+            self.hist_kwargs[key] = hist_kwargs[key]
+        
         if 'bins' not in self.hist_kwargs:
             # set default number of bins to 20
             self.hist_kwargs['bins'] = 20
