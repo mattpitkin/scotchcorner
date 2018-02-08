@@ -704,6 +704,7 @@ class scotchcorner(object):
         """
         Set some formatting of the axes
         """
+
         pl.draw() # force labels to be drawn
 
         theselimits = None
@@ -790,7 +791,7 @@ class scotchcorner(object):
 
         if transform is None:
             transform = lambda x: x
-        
+
         # Determine the clipping
         if clip is None:
             clip = [(-np.inf, np.inf), (-np.inf, np.inf)]
@@ -799,8 +800,8 @@ class scotchcorner(object):
 
         # Calculate the KDE
         Npts = pts.shape[0]
-        kde_pts = transform(pts[:int(Npts/2),:])
-        den_pts = transform(pts[int(Npts/2):,:])
+        kde_pts = transform(pts[:int(Npts/2), :])
+        den_pts = transform(pts[int(Npts/2):, :])
 
         Nden = den_pts.shape[0]
 
@@ -808,13 +809,13 @@ class scotchcorner(object):
         den = post_kde(den_pts)
         densort = np.sort(den)[::-1]
 
-        zvalues=[]
+        zvalues = []
         for level in self.levels:
             ilevel = int(Nden*level + 0.5)
             if ilevel >= Nden:
                 ilevel = Nden-1
             zvalues.append(densort[ilevel])
-        
+
         # sort into ascending order (required in Matplotlib v 1.5.1)
         zvalues.sort()
 
