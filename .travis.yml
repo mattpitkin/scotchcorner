@@ -25,6 +25,6 @@ script:
   - python -c "import sys; import numpy as np; from scotchcorner import scotchcorner as sc; x = np.random.randn(1000,2); labels=[r'\$x\$', r'\$y\$']; cp = sc(x, labels=labels); cp.savefig('test.png'); sys.exit(0)"
   # try building documentation
   - cd docs
-  - mkdir source/_static
+  - mkdir _static
   - make html
 
