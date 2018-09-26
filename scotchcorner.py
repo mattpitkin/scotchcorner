@@ -850,10 +850,15 @@ class scotchcorner(object):
             fmt[cset.levels[0]] = '{}%'.format(int(100*level))
             #for l, s in zip(cset.levels, strs):
             #    fmt[l] = s
-            
+
             if self.show_level_labels:
-                pl.clabel(cset, cset.levels, fmt=fmt, fontsize=11, **self.contour_kwargs)#, use_clabeltext=True)
+                #pl.clabel(cset, cset.levels, fmt=fmt, fontsize=11, **self.contour_kwargs)#, use_clabeltext=True)
+                lw = self.contour_kwargs.pop('linewidths')
+                alpha = self.contour_kwargs.pop('alpha')
+                ax.clabel(cset, cset.levels, fmt=fmt, fontsize=11, **self.contour_kwargs)
                 pl.setp(cset.labelTexts, color='k', path_effects=[PathEffects.withStroke(linewidth=1.5, foreground="w")])
+                self.contour_kwargs['linewidths'] = lw
+                self.contour_kwargs['alpha'] = alpha
 
     def _check_alpha(self):
         """
