@@ -553,7 +553,7 @@ class scotchcorner(object):
         if self.subtract_truths is not None and self.truths is not None:
             if len(self.truths)-1 in self.subtract_truths and self.truths[-1] is not None:
                 subval = self.truths[-1]
-        self.histvert[-1].hist(data[:,-1]-subval, normed=True, orientation='horizontal', label=label, **self.hist_kwargs)
+        self.histvert[-1].hist(data[:,-1]-subval, density=True, orientation='horizontal', label=label, **self.hist_kwargs)
         if self.truths is not None:
             if self.truths[-1] is not None:
                 marker = None
@@ -620,7 +620,7 @@ class scotchcorner(object):
                 if i in self.subtract_truths and self.truths[i] is not None:
                     subval = self.truths[i]
 
-            self.histhori[i].hist(data[:,i]-subval, normed=True, **self.hist_kwargs)
+            self.histhori[i].hist(data[:,i]-subval, density=True, **self.hist_kwargs)
 
             # make sure axes ranges on vertical histograms match those on the equivalent horizontal histograms
             if i > 0:
