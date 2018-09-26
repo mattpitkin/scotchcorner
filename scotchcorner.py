@@ -852,7 +852,6 @@ class scotchcorner(object):
             #    fmt[l] = s
 
             if self.show_level_labels:
-                #pl.clabel(cset, cset.levels, fmt=fmt, fontsize=11, **self.contour_kwargs)#, use_clabeltext=True)
                 lw = self.contour_kwargs.pop('linewidths')
                 alpha = self.contour_kwargs.pop('alpha')
                 ax.clabel(cset, cset.levels, fmt=fmt, fontsize=11, **self.contour_kwargs)
