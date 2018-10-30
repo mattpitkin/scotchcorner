@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __author__ = "Matthew Pitkin (matthew.pitkin@glasgow.ac.uk)"
 __copyright__ = "Copyright 2016 Matthew Pitkin, Ben Farr and Will Farr"
 
@@ -12,143 +12,10 @@ import math
 import matplotlib as mpl
 from matplotlib import pyplot as pl
 from matplotlib.lines import Line2D
-from matplotlib.ticker import ScalarFormatter, Locator, Base
+from matplotlib.ticker import ScalarFormatter, MaxNLocator
 import matplotlib.gridspec as gridspec
 from matplotlib import transforms as mtransforms
 from matplotlib import patheffects as PathEffects
-
-
-class CustomMaxNLocator(Locator):
-    """
-    Select no more than N intervals at nice locations. This class is copied and
-    modified from the MaxNLocator class in matplotlib v2.0.0, which allows a
-    minimum number of ticks (but which MaxNLocator in v1.5.1 does not allow).
-    It does not have all the options and so some have default values.
-    """
-    default_params = dict(nbins=10, prune=None, min_n_ticks=2)
-
-    def __init__(self, *args, **kwargs):
-        """
-        Keyword args:
-        *nbins*
-            Maximum number of intervals; one less than max number of
-            ticks.  If the string `'auto'`, the number of bins will be
-            automatically determined based on the length of the axis.
-        *min_n_ticks*
-            While the estimated number of ticks is less than the minimum,
-            the target value *nbins* is incremented and the ticks are
-            recalculated.
-        *prune*
-            ['lower' | 'upper' | 'both' | None]
-            Remove edge ticks -- useful for stacked or ganged plots
-            where the upper tick of one axes overlaps with the lower
-            tick of the axes above it.
-            If prune=='lower', the smallest tick will
-            be removed.  If prune=='upper', the largest tick will be
-            removed.  If prune=='both', the largest and smallest ticks
-            will be removed.  If prune==None, no ticks will be removed.
-        """
-        if args:
-            kwargs['nbins'] = args[0]
-            if len(args) > 1:
-                raise ValueError(
-                    "Keywords are required for all arguments except 'nbins'")
-        self.set_params(**self.default_params)
-        self.set_params(**kwargs)
-
-    def set_params(self, **kwargs):
-        """Set parameters within this locator."""
-        if 'nbins' in kwargs:
-            self._nbins = kwargs['nbins']
-            if self._nbins != 'auto':
-                self._nbins = int(self._nbins)
-        self._steps = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]
-        if 'prune' in kwargs:
-            prune = kwargs['prune']
-            if prune is not None and prune not in ['upper', 'lower', 'both']:
-                raise ValueError("prune must be 'upper', 'lower', 'both', or "
-                                 "None")
-            self._prune = prune
-        if 'min_n_ticks' in kwargs:
-            self._min_n_ticks = max(1, kwargs['min_n_ticks'])
-
-    def _raw_ticks(self, vmin, vmax):
-        if self._nbins == 'auto':
-            nbins = max(min(self.axis.get_tick_space(), 9),
-                        max(1, self._min_n_ticks - 1))
-        else:
-            nbins = self._nbins
-
-        while True:
-            ticks = self._try_raw_ticks(vmin, vmax, nbins)
-            nticks = ((ticks <= vmax) & (ticks >= vmin)).sum()
-            if nticks >= self._min_n_ticks:
-                break
-            nbins += 1
-
-        self._nbins_used = nbins  # Maybe useful for troubleshooting.
-        return ticks
-
-    def _try_raw_ticks(self, vmin, vmax, nbins):
-        scale, offset = self.scale_range(vmin, vmax, nbins)
-        vmin = vmin - offset
-        vmax = vmax - offset
-        raw_step = (vmax - vmin) / nbins
-        scaled_raw_step = raw_step / scale
-        best_vmax = vmax
-        best_vmin = vmin
-
-        steps = (x for x in self._steps if x >= scaled_raw_step)
-        for step in steps:
-            step *= scale
-            best_vmin = vmin // step * step
-            best_vmax = best_vmin + step * nbins
-            if best_vmax >= vmax:
-                break
-
-        # More than nbins may be required, e.g. vmin, vmax = -4.1, 4.1 gives
-        # nbins=9 but 10 bins are actually required after rounding.  So we just
-        # create the bins that span the range we need instead.
-        low = round(Base(step).le(vmin - best_vmin) / step)
-        high = round(Base(step).ge(vmax - best_vmin) / step)
-        return np.arange(low, high + 1) * step + best_vmin + offset
-
-    def bin_boundaries(self, vmin, vmax):
-        return self._raw_ticks(vmin, vmax)
-
-    def __call__(self):
-        vmin, vmax = self.axis.get_view_interval()
-        return self.tick_values(vmin, vmax)
-
-    def tick_values(self, vmin, vmax):
-        vmin, vmax = mtransforms.nonsingular(
-            vmin, vmax, expander=1e-13, tiny=1e-14)
-        locs = self._raw_ticks(vmin, vmax)
-        prune = self._prune
-        if prune == 'lower':
-            locs = locs[1:]
-        elif prune == 'upper':
-            locs = locs[:-1]
-        elif prune == 'both':
-            locs = locs[1:-1]
-        return self.raise_if_exceeds(locs)
-
-    def view_limits(self, dmin, dmax):
-        dmin, dmax = mtransforms.nonsingular(
-            dmin, dmax, expander=1e-12, tiny=1e-13)
-
-        return self._raw_ticks(dmin, dmax)[[0, -1]]
-
-    def scale_range(self, vmin, vmax, n=1, threshold=100):
-        # scale_range function from matplotlib ticker.py
-        dv = abs(vmax - vmin)  # > 0 as nonsingular is called before.
-        meanv = (vmax + vmin) / 2
-        if abs(meanv) / dv < threshold:
-            offset = 0
-        else:
-            offset = math.copysign(10 ** (math.log10(abs(meanv)) // 1), meanv)
-        scale = 10 ** (math.log10(dv / n) // 1)
-        return scale, offset
 
 
 # A bounded KDE class (inherited from the SciPy Gaussian KDE class) created by
@@ -440,7 +307,8 @@ class scotchcorner(object):
                 self.legendaxis.spines[loc].set_visible(False)  # remove borders
             pl.setp(self.legendaxis.get_xticklabels(), visible=False)  # remove xtick labels
             pl.setp(self.legendaxis.get_yticklabels(), visible=False)  # remove ytick labels
-            self.legendaxis.tick_params(bottom='off', top='off', left='off', right='off')  # remove tick marks
+            self.legendaxis.tick_params(bottom=False, top=False, left=False,
+                                        right=False)  # remove tick marks
 
         # create figure axes
         for i in range(self.ndims-1):
@@ -492,7 +360,8 @@ class scotchcorner(object):
 
                 pl.setp(axj.get_xticklabels(), visible=False)  # remove xtick labels
                 pl.setp(axj.get_yticklabels(), visible=False)  # remove ytick labels
-                axj.tick_params(bottom='off', top='off', left='off', right='off')  # remove tick marks 
+                axj.tick_params(bottom=False, top=False, left=False,
+                                right=False)  # remove tick marks 
                 self.jointaxes.append(axj)
 
         # check for alpha of filled histogram plot
@@ -612,7 +481,7 @@ class scotchcorner(object):
             if 'color' in self.hist_kwargs:
                 c = self.hist_kwargs['color']
             elif 'fc' in self.hist_kwargs and self.hist_kwargs['histtype'] == 'stepfilled':
-                c = self.hist_kwargs['fc'][0:3]
+                c = [self.hist_kwargs['fc'][0:3]]
             else:
                 c = 'b'
 
@@ -769,9 +638,9 @@ class scotchcorner(object):
             prune = None
             if i > 0:  # remove the lower tick label to avoid overlapping labels
                 prune = 'lower'
-            ax.xaxis.set_major_locator(CustomMaxNLocator(nbins=7,
-                                                         min_n_ticks=nbins,
-                                                         prune=prune))
+            ax.xaxis.set_major_locator(MaxNLocator(nbins=7,
+                                                   min_n_ticks=nbins,
+                                                   prune=prune))
             for l in ax.get_xticklabels():
                 l.set_rotation(45)
             ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=self.use_math_text))
@@ -794,9 +663,9 @@ class scotchcorner(object):
             prune = None  # remove lower tick to avoid overlapping labels
             if i < len(self.histvert)-1:
                 prune = 'lower'
-            ax.yaxis.set_major_locator(CustomMaxNLocator(nbins=7,
-                                                         min_n_ticks=nbins,
-                                                         prune=prune))
+            ax.yaxis.set_major_locator(MaxNLocator(nbins=7,
+                                                   min_n_ticks=nbins,
+                                                   prune=prune))
             ax.yaxis.set_major_formatter(ScalarFormatter(useMathText=self.use_math_text))
             self.format_exponents_in_label_single_ax(ax.yaxis)  # move exponents into label
 
