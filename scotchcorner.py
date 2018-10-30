@@ -20,9 +20,10 @@ from matplotlib import patheffects as PathEffects
 
 class CustomMaxNLocator(Locator):
     """
-    Select no more than N intervals at nice locations. This class is copied and modified from the MaxNLocator class
-    in matplotlib v2.0.0, which allows a minimum number of ticks (but which MaxNLocator in v1.5.1
-    does not allow). It does not have all the options and so some have default values.
+    Select no more than N intervals at nice locations. This class is copied and
+    modified from the MaxNLocator class in matplotlib v2.0.0, which allows a
+    minimum number of ticks (but which MaxNLocator in v1.5.1 does not allow).
+    It does not have all the options and so some have default values.
     """
     default_params = dict(nbins=10, prune=None, min_n_ticks=2)
 
@@ -65,7 +66,8 @@ class CustomMaxNLocator(Locator):
         if 'prune' in kwargs:
             prune = kwargs['prune']
             if prune is not None and prune not in ['upper', 'lower', 'both']:
-                raise ValueError("prune must be 'upper', 'lower', 'both', or None")
+                raise ValueError("prune must be 'upper', 'lower', 'both', or "
+                                 "None")
             self._prune = prune
         if 'min_n_ticks' in kwargs:
             self._min_n_ticks = max(1, kwargs['min_n_ticks'])
@@ -149,7 +151,8 @@ class CustomMaxNLocator(Locator):
         return scale, offset
 
 
-# A bounded KDE class (inherited from the SciPy Gaussian KDE class) created by Ben Farr @bfarr
+# A bounded KDE class (inherited from the SciPy Gaussian KDE class) created by
+# Ben Farr @bfarr
 class Bounded_2d_kde(ss.gaussian_kde):
     """
     Represents a two-dimensional Gaussian kernel density estimator
@@ -157,7 +160,8 @@ class Bounded_2d_kde(ss.gaussian_kde):
     domain (by `Ben Farr <https://github.com/bfarr>`_).
     """
 
-    def __init__(self, pts, xlow=None, xhigh=None, ylow=None, yhigh=None, *args, **kwargs):
+    def __init__(self, pts, xlow=None, xhigh=None, ylow=None, yhigh=None,
+                 *args, **kwargs):
         """Initialize with the given bounds.  Either ``low`` or
         ``high`` may be ``None`` if the bounds are one-sided.  Extra
         parameters are passed to :class:`scipy.stats.gaussian_kde`.
@@ -222,16 +226,20 @@ class Bounded_2d_kde(ss.gaussian_kde):
 
         if self.xlow is not None:
             if self.ylow is not None:
-                pdf += super(Bounded_2d_kde, self).evaluate([2*self.xlow - x, 2*self.ylow - y])
+                pdf += super(Bounded_2d_kde, self).evaluate([2*self.xlow - x,
+                                                             2*self.ylow - y])
 
             if self.yhigh is not None:
-                pdf += super(Bounded_2d_kde, self).evaluate([2*self.xlow - x, 2*self.yhigh - y])
+                pdf += super(Bounded_2d_kde, self).evaluate([2*self.xlow - x,
+                                                             2*self.yhigh - y])
 
         if self.xhigh is not None:
             if self.ylow is not None:
-                pdf += super(Bounded_2d_kde, self).evaluate([2*self.xhigh - x, 2*self.ylow - y])
+                pdf += super(Bounded_2d_kde, self).evaluate([2*self.xhigh - x,
+                                                             2*self.ylow - y])
             if self.yhigh is not None:
-                pdf += super(Bounded_2d_kde, self).evaluate([2*self.xhigh - x, 2*self.yhigh - y])
+                pdf += super(Bounded_2d_kde, self).evaluate([2*self.xhigh - x,
+                                                             2*self.yhigh - y])
 
         return pdf
 
@@ -266,16 +274,18 @@ class scotchcorner(object):
     ratio : int, optional, default: 3
         The ratio of the size of 1D histograms to the size of the joint plots
     labels : list, optional
-        A list of names for each of the `ndims` parameters.  These are used for the axes labels. If `data` is a
-        :class:`pandas.DataFrame` then the column names of that will be used instead.
+        A list of names for each of the `ndims` parameters.  These are used for
+        the axes labels. If `data` is a :class:`pandas.DataFrame` then the
+        column names of that will be used instead.
     truths : list, optional, default: None
         A list of the true values of each parameter
     datatitle : string, optional
         A title for the data set to be added as a legend
     showlims : string, optional, default: None
         Show edges/borders at the plots limits. Use 'hist' for limits on the 1D
-        histogram plots, 'joint' for borders around 2D joint plots, or 'both' for
-        borders on the 1D and 2D plots. The default (None) is for no borders.
+        histogram plots, 'joint' for borders around 2D joint plots, or 'both'
+        for borders on the 1D and 2D plots. The default (None) is for no
+        borders.
     limlinestyle : default: 'dotted'
         The line style for the plot borders
     hist_kwargs : dict
@@ -285,53 +295,63 @@ class scotchcorner(object):
     showpoints: bool, default: True
         Show the data points in the 2D joint parameter plots
     thinpoints : float, default: 1.0
-        Thin-down the number of points being plotted in the 2D scatter plots by this factor
+        Thin-down the number of points being plotted in the 2D scatter plots by
+        this factor
     scatter_kwargs : dict
         A dictionary of keyword arguments for the scatter plot function
     showcontours : bool, default: False
-        Show KDE probability contours for the 2D joint parameter plots (with levels defined by `contour_levels`)
+        Show KDE probability contours for the 2D joint parameter plots (with
+        levels defined by `contour_levels`)
     contour_kwargs : dict
         A dictionary of keyword argumemts for the contour plot function
     contour_levels : list, default: [0.5, 0.9]
-        A list of values between 0 and 1 indicating the probability contour confidence intervals to plot
-        (defaulting to 50% and 90% contours)
+        A list of values between 0 and 1 indicating the probability contour
+        confidence intervals to plot (defaulting to 50% and 90% contours)
     show_level_labels : bool, default: True
         Add labels on the contours levels showing their probability
     use_math_text : bool, default: True
         Use math text scientific notation for parameter tick mark labelling
     limits : list, default: None
-        A list of tuples giving the lower and upper limits for each parameter. If limits for some parameters 
-        are not known/required then an empty tuple (or `None` within a two value tuple) must be placed in the
-        list for that parameter
+        A list of tuples giving the lower and upper limits for each parameter.
+        If limits for some parameters are not known/required then an empty
+        tuple (or `None` within a two value tuple) must be placed in the list
+        for that parameter
     contour_limits : list, default: None
-        A list of tuples giving the lower and upper limits for each parameter for use when creating credible
-        interval contour for joint plots. If limits for some parameters are not known/required then an empty
-        tuple (or `None` within a two value tuple) must be placed in the list for that parameter
+        A list of tuples giving the lower and upper limits for each parameter
+        for use when creating credible interval contour for joint plots. If
+        limits for some parameters are not known/required then an empty tuple
+        (or `None` within a two value tuple) must be placed in the list for
+        that parameter
     subtract_truths : list or tuple, optional, default: None
-        A list/tuple of indices of parameters for which you want to show the distribution centred such that
-        true value is zero. This is only relevent if `truths` are supplied.
+        A list/tuple of indices of parameters for which you want to show the
+        distribution centred such that true value is zero. This is only
+        relevent if `truths` are supplied.
     figsize : tuple
         A two value tuple giving the figure size
     mplparams : dict
         A dictionary containing matplotlib configuration values
 
     """
-    def __init__(self, data, bins=20, ratio=3, labels=None, truths=None, datatitle=None, showlims=None,
-                 limlinestyle='dotted', showpoints=True, showcontours=False, hist_kwargs={}, truths_kwargs={},
-                 scatter_kwargs={}, contour_kwargs={}, contour_levels=[0.5, 0.9], show_level_labels=True,
-                 use_math_text=True, limits=None, contour_limits=None, figsize=None, mplparams=None,
-                 thinpoints=1.0, subtract_truths=None):
+    def __init__(self, data, bins=20, ratio=3, labels=None, truths=None,
+                 datatitle=None, showlims=None, limlinestyle='dotted',
+                 showpoints=True, showcontours=False, hist_kwargs={},
+                 truths_kwargs={}, scatter_kwargs={}, contour_kwargs={},
+                 contour_levels=[0.5, 0.9], show_level_labels=True,
+                 use_math_text=True, limits=None, contour_limits=None,
+                 figsize=None, mplparams=None, thinpoints=1.0,
+                 subtract_truths=None):
         # get number of dimensions in the data
-        self.ndims = data.shape[1] # get number of dimensions in data
+        self.ndims = data.shape[1]  # get number of dimensions in data
         self.ratio = ratio
         if isinstance(data, pd.DataFrame):
             self.labels = data.columns
         else:
             self.labels = labels
-        self.truths = truths                 # true values for each parameter in data
+        self.truths = truths          # true values for each parameter in data
         self.truths_kwargs = truths_kwargs
         if self.truths is not None:
-            if len(self.truths) != self.ndims: # must be same number of true values as parameters
+            # must be same number of true values as parameters
+            if len(self.truths) != self.ndims:
                 self.truths = None
         self.subtract_truths = subtract_truths
         self.levels = contour_levels
@@ -345,17 +365,17 @@ class scotchcorner(object):
         self.legend_labels = []
         self.use_math_text = use_math_text
         self.limits = limits  # a list of tuples giving the lower and upper limits for each parameter - if some values aren't given then an empty tuple must be placed in the list for that value
-        self.contourlimits = contour_limits # a list of tuples giving the lower and upper limits for each parameter for use in credible interval contours - if some values aren't given then an empty tuple must be placed in the list for that value
+        self.contourlimits = contour_limits  # a list of tuples giving the lower and upper limits for each parameter for use in credible interval contours - if some values aren't given then an empty tuple must be placed in the list for that value
 
         # default figure size (numbers "stolen" from those used in corner.py that are, to quote, "Some magic numbers for pretty axis layout."
         factor = 2.0           # size of one side of one panel
         lbdim = 0.5 * factor   # size of left/bottom margin
         trdim = 0.2 * factor   # size of top/right margin
         whspace = 0.05         # w/hspace size
-        K = self.ndims - 1. + (1./self.ratio) # different from corner.py to account for histogram ratio
+        K = self.ndims - 1. + (1./self.ratio)  # different from corner.py to account for histogram ratio
         plotdim = factor * K + factor * (K - 1.) * whspace
         dim = lbdim + plotdim + trdim
-        self.figsize = (dim, dim) # default figure size
+        self.figsize = (dim, dim)  # default figure size
         if figsize is not None:
             if isinstance(figsize, tuple):
                 if len(figsize) == 2:
@@ -365,9 +385,9 @@ class scotchcorner(object):
         if mplparams == None:
             # set default parameters
             self.mplparams = {
-                'text.usetex': True, # use LaTeX for all text
-                'axes.linewidth': 0.5, # set axes linewidths to 0.5
-                'axes.grid': False, # add a grid
+                'text.usetex': True,    # use LaTeX for all text
+                'axes.linewidth': 0.5,  # set axes linewidths to 0.5
+                'axes.grid': False,     # add a grid
                 'font.family': 'sans-serif',
                 'font.sans-serif': 'Avant Garde, Helvetica, Computer Modern Sans serif',
                 'font.size': 15,
@@ -386,7 +406,7 @@ class scotchcorner(object):
                             'alpha': 0.4,
                             'edgecolor': 'lightslategray',
                             'linewidth': 1.5}
-        for key in hist_kwargs.keys(): # set any values input
+        for key in hist_kwargs.keys():  # set any values input
             self.hist_kwargs[key] = hist_kwargs[key]
 
         if bins != 20:
@@ -396,18 +416,18 @@ class scotchcorner(object):
         # create figure
         self._fig = pl.figure(figsize=self.figsize)
         self.histhori = []
-        self.histhori_indices = list(range(0,self.ndims-1)) # indexes of parameters in horizontal histograms
+        self.histhori_indices = list(range(0,self.ndims-1))  # indexes of parameters in horizontal histograms
         self.histvert = []
-        self.histvert_indices = list(range(1,self.ndims)) # indexes of parameters in vertical histograms
+        self.histvert_indices = list(range(1,self.ndims))  # indexes of parameters in vertical histograms
         self.jointaxes = []
         self.jointaxes_indices = []
-        self._axes = {} # dictionary of axes keyed to parameter names if available
+        self._axes = {}  # dictionary of axes keyed to parameter names if available
 
         # format the figure (again this is stolen from corner.py)
         lb = lbdim / dim
         tr = (lbdim + plotdim) / dim
-        self._fig.subplots_adjust(left=lb, bottom=lb, right=tr, top=tr, wspace=whspace,
-                                  hspace=whspace)
+        self._fig.subplots_adjust(left=lb, bottom=lb, right=tr, top=tr,
+                                  wspace=whspace, hspace=whspace)
 
         # create grid
         gridsize = self.ratio*(self.ndims-1) + 1
@@ -417,10 +437,10 @@ class scotchcorner(object):
         if data.shape[1] > 2:
             self.legendaxis = self._fig.add_subplot(gs[0:ratio,((self.ndims-2)*ratio+1):(1+(self.ndims-1)*ratio)])
             for loc in ['top', 'right', 'left', 'bottom']:
-                self.legendaxis.spines[loc].set_visible(False) # remove borders
-            pl.setp(self.legendaxis.get_xticklabels(), visible=False) # remove xtick labels
-            pl.setp(self.legendaxis.get_yticklabels(), visible=False) # remove ytick labels
-            self.legendaxis.tick_params(bottom='off', top='off', left='off', right='off') # remove tick marks
+                self.legendaxis.spines[loc].set_visible(False)  # remove borders
+            pl.setp(self.legendaxis.get_xticklabels(), visible=False)  # remove xtick labels
+            pl.setp(self.legendaxis.get_yticklabels(), visible=False)  # remove ytick labels
+            self.legendaxis.tick_params(bottom='off', top='off', left='off', right='off')  # remove tick marks
 
         # create figure axes
         for i in range(self.ndims-1):
@@ -431,12 +451,12 @@ class scotchcorner(object):
                     axv.spines[loc].set_alpha(0.2)
                     axv.spines[loc].set_linestyle(limlinestyle)
             else:
-                axv.spines['top'].set_visible(False)    # remove top border
-                axv.spines['bottom'].set_visible(False) # remove bottom border
-            axv.spines['right'].set_visible(False)  # remove right border
+                axv.spines['top'].set_visible(False)     # remove top border
+                axv.spines['bottom'].set_visible(False)  # remove bottom border
+            axv.spines['right'].set_visible(False)       # remove right border
             axv.set_xticklabels([])
             axv.set_xticks([])
-            axv.yaxis.set_ticks_position('left') # just show ticks on left
+            axv.yaxis.set_ticks_position('left')  # just show ticks on left
             self.histvert.append(axv)
             self.histvert_indices.append(i+1)
 
@@ -452,7 +472,7 @@ class scotchcorner(object):
                 axh.spines['right'].set_visible(False)  # remove right border
             axh.set_yticklabels([])
             axh.set_yticks([])
-            axh.xaxis.set_ticks_position('bottom') # just show ticks on bottom
+            axh.xaxis.set_ticks_position('bottom')  # just show ticks on bottom
             self.histhori.append(axh)
 
             # joint plots
@@ -464,15 +484,15 @@ class scotchcorner(object):
                     self.legendaxis = axj
                 if showlims in ['joint', 'both']:
                     for loc in ['top', 'right', 'left', 'bottom']:
-                        axj.spines[loc].set_alpha(0.2) # show border, but with alpha = 0.2
+                        axj.spines[loc].set_alpha(0.2)  # show border, but with alpha = 0.2
                         axj.spines[loc].set_linestyle(limlinestyle)
                 else:
                     for loc in ['top', 'right', 'left', 'bottom']:
                         axj.spines[loc].set_visible(False) # remove borders
 
-                pl.setp(axj.get_xticklabels(), visible=False) # remove xtick labels
-                pl.setp(axj.get_yticklabels(), visible=False) # remove ytick labels
-                axj.tick_params(bottom='off', top='off', left='off', right='off') # remove tick marks 
+                pl.setp(axj.get_xticklabels(), visible=False)  # remove xtick labels
+                pl.setp(axj.get_yticklabels(), visible=False)  # remove ytick labels
+                axj.tick_params(bottom='off', top='off', left='off', right='off')  # remove tick marks 
                 self.jointaxes.append(axj)
 
         # check for alpha of filled histogram plot
@@ -482,9 +502,11 @@ class scotchcorner(object):
         # create plots
         self._add_plots(data, label=datatitle)
 
-    def add_data(self, data, hist_kwargs={}, datatitle=None, showpoints=True, showcontours=False, scatter_kwargs={},
-                 contour_kwargs={}, truths=None, truths_kwargs={}, contour_levels=[0.5, 0.9], limits=None,
-                 contour_limits = None, show_level_labels=True, thinpoints=1.0):
+    def add_data(self, data, hist_kwargs={}, datatitle=None, showpoints=True,
+                 showcontours=False, scatter_kwargs={}, contour_kwargs={},
+                 truths=None, truths_kwargs={}, contour_levels=[0.5, 0.9],
+                 limits=None, contour_limits = None, show_level_labels=True,
+                 thinpoints=1.0):
         """
         Add another data set to the plots, `hist_kwargs` are required.
         """
@@ -503,7 +525,7 @@ class scotchcorner(object):
             self.hist_kwargs['linewidth'] = 1.5
         self.truths = truths
         if self.truths is not None:
-            if len(self.truths) != self.ndims: # must be same number of true values as parameters
+            if len(self.truths) != self.ndims:  # must be same number of true values as parameters
                 self.truths = None
         self.scatter_kwargs = scatter_kwargs
         self.levels = contour_levels
@@ -553,13 +575,16 @@ class scotchcorner(object):
         if self.subtract_truths is not None and self.truths is not None:
             if len(self.truths)-1 in self.subtract_truths and self.truths[-1] is not None:
                 subval = self.truths[-1]
-        self.histvert[-1].hist(data[:,-1]-subval, density=True, orientation='horizontal', label=label, **self.hist_kwargs)
+        self.histvert[-1].hist(data[:,-1]-subval, density=True,
+                               orientation='horizontal', label=label,
+                               **self.hist_kwargs)
         if self.truths is not None:
             if self.truths[-1] is not None:
                 marker = None
-                if 'marker' in self.truths_kwargs: # remove any marker for line
+                if 'marker' in self.truths_kwargs:  # remove any marker for line
                     marker = self.truths_kwargs.pop('marker')
-                self.histvert[-1].axhline(self.truths[-1]-subval, **self.truths_kwargs)
+                self.histvert[-1].axhline(self.truths[-1]-subval,
+                                          **self.truths_kwargs)
                 if marker is not None:
                     self.truths_kwargs['marker'] = marker
 
@@ -570,9 +595,12 @@ class scotchcorner(object):
                 lc = self.hist_kwargs['edgecolor']
             else:
                 lc = self.hist_kwargs['color']
-            self.legend_labels.append(Line2D([], [], linewidth=self.hist_kwargs['linewidth'], color=lc)) # create fake line for legend (to use line rather than a box)
+            self.legend_labels.append(Line2D([], [],
+                                             linewidth=self.hist_kwargs['linewidth'],
+                                             color=lc))  # create fake line for legend (to use line rather than a box)
         if data.shape[1] == 2:
-            self.legendaxis.legend(self.legend_labels, l1, loc='best', fancybox=True, framealpha=0.4)
+            self.legendaxis.legend(self.legend_labels, l1, loc='best',
+                                   fancybox=True, framealpha=0.4)
         else:
             self.legendaxis.legend(self.legend_labels, l1, loc='lower left')
         if self.labels is not None:
@@ -588,7 +616,8 @@ class scotchcorner(object):
             else:
                 c = 'b'
 
-            these_scatter_kwargs = {'c': c, 'marker': 'o', 's': 20, 'alpha': 0.05, 'edgecolors': 'none'}
+            these_scatter_kwargs = {'c': c, 'marker': 'o', 's': 20,
+                                    'alpha': 0.05, 'edgecolors': 'none'}
             
             for key in self.scatter_kwargs.keys():
                 these_scatter_kwargs[key] = self.scatter_kwargs[key]
@@ -596,11 +625,13 @@ class scotchcorner(object):
         
         if self.limits is not None:
             if len(self.limits) != self.ndims:
-                raise("Error... number of dimensions is not the same as the number of limits being set")
+                raise("Error... number of dimensions is not the same as the "
+                      "number of limits being set")
         
         if self.contourlimits is not None:
             if len(self.contourlimits) != self.ndims:
-                raise("Error... number of dimensions is not the same as the number of contour limits being set")
+                raise("Error... number of dimensions is not the same as the "
+                      "number of contour limits being set")
         
         if self.showcontours:
             # set default contour kwargs
@@ -633,7 +664,7 @@ class scotchcorner(object):
             if self.truths is not None:
                 if self.truths[i] is not None:
                     marker = None
-                    if 'marker' in self.truths_kwargs: # remove any marker for line
+                    if 'marker' in self.truths_kwargs:  # remove any marker for line
                         marker = self.truths_kwargs.pop('marker')
                     self.histhori[i].axvline(self.truths[i]-subval, **self.truths_kwargs)
                     if marker is not None:
@@ -661,15 +692,18 @@ class scotchcorner(object):
                 if self.showpoints:
                     if self.thinpoints < 1. or self.thinpoints > data.shape[0]:
                         raise("Error... Thinning factor is less than 1 or greater than the total number of data points")
-                    if self.thinpermutation is None: # select points randomly for thinning
+                    if self.thinpermutation is None:  # select points randomly for thinning
                         nthinpoints = int(data.shape[0]/self.thinpoints)
                         permutepoints = np.random.permutation(np.arange(data.shape[0]))[:nthinpoints]
                         self.thinpermutation = permutepoints
 
-                    self.jointaxes[jointcount].scatter(data[self.thinpermutation,j]-subvals[0], data[self.thinpermutation,i+1]-subvals[1], **self.scatter_kwargs) # plot scatter
+                    # plot scatter
+                    self.jointaxes[jointcount].scatter(data[self.thinpermutation,j]-subvals[0],
+                                                       data[self.thinpermutation,i+1]-subvals[1],
+                                                       **self.scatter_kwargs)
 
                 if self.showcontours:
-                    xlow = xhigh = ylow = yhigh = None # default limits
+                    xlow = xhigh = ylow = yhigh = None  # default limits
                     if self.contourlimits is not None:
                         if len(self.contourlimits[j]) == 2:
                             xlow = self.contourlimits[j][0]
@@ -678,7 +712,9 @@ class scotchcorner(object):
                             ylow = self.contourlimits[i+1][0]
                             yhigh = self.contourlimits[i+1][1]
 
-                    self.plot_bounded_2d_kde_contours(self.jointaxes[jointcount], np.vstack((data[:,j]-subvals[0], data[:,i+1]-subvals[1])).T, xlow=xlow, xhigh=xhigh, ylow=ylow, yhigh=yhigh)
+                    self.plot_bounded_2d_kde_contours(self.jointaxes[jointcount],
+                                                      np.vstack((data[:,j]-subvals[0], data[:,i+1]-subvals[1])).T,
+                                                      xlow=xlow, xhigh=xhigh, ylow=ylow, yhigh=yhigh)
 
                 if self.truths is not None:
                     if self.truths[j] is not None and self.truths[i+1] is not None:
@@ -686,13 +722,16 @@ class scotchcorner(object):
                         if 'marker' not in self.truths_kwargs:
                             self.truths_kwargs['marker'] = 'x'
 
-                        self.jointaxes[jointcount].plot(self.truths[j]-subvals[0], self.truths[i+1]-subvals[1], **self.truths_kwargs)
+                        self.jointaxes[jointcount].plot(self.truths[j]-subvals[0],
+                                                        self.truths[i+1]-subvals[1],
+                                                        **self.truths_kwargs)
 
                 jointcount += 1
 
     def get_axis(self, param):
         """
-        Return the axis for the given "param" (for joint axes "param" should be the required parameters separated by "vs")
+        Return the axis for the given "param" (for joint axes "param" should
+        be the required parameters separated by "vs")
         """
         if param in self._axes:
             return self._axes[param]
@@ -705,61 +744,61 @@ class scotchcorner(object):
         Set some formatting of the axes
         """
 
-        pl.draw() # force labels to be drawn
+        pl.draw()  # force labels to be drawn
 
         theselimits = None
         if self.limits is not None:
-            theselimits = list(self.limits) # local copy of the limits
+            theselimits = list(self.limits)  # local copy of the limits
 
         for i, ax in enumerate(self.histhori):
             # set limits
             if theselimits is not None:
-                xmin, xmax = ax.get_xlim() # get current limits
+                xmin, xmax = ax.get_xlim()  # get current limits
                 if len(theselimits[self.histhori_indices[i]]) == 2:
                     xminnew, xmaxnew = theselimits[self.histhori_indices[i]]
                     if xminnew == None:
                         xminnew = xmin
                     if xmaxnew == None:
                         xmaxnew = xmax
-                    #dx = 0.025*(xmaxnew-xminnew) # add a little bit of space
-                    #ax.set_xlim([xminnew-dx, xmaxnew+dx])
                     ax.set_xlim([xminnew, xmaxnew])
-                    theselimits[self.histhori_indices[i]] = [xminnew, xmaxnew] # reset local copy of limits to these values (so vertical hists and joint axes have the same ranges)
+                    theselimits[self.histhori_indices[i]] = [xminnew, xmaxnew]  # reset local copy of limits to these values (so vertical hists and joint axes have the same ranges)
                 else:
-                    theselimits[self.histhori_indices[i]] = [xmin, xmax] # set the local copy of limits, (so vertical hists and joint axes have the same ranges)
+                    theselimits[self.histhori_indices[i]] = [xmin, xmax]  # set the local copy of limits, (so vertical hists and joint axes have the same ranges)
             
-            nbins = min([len(ax.get_xticklabels()), 5]) # make sure there are at least 4 tick marks (after removal of one) and a max of 7
+            nbins = min([len(ax.get_xticklabels()), 5])  # make sure there are at least 4 tick marks (after removal of one) and a max of 7
             prune = None
-            if i > 0: # remove the lower tick label to avoid overlapping labels
+            if i > 0:  # remove the lower tick label to avoid overlapping labels
                 prune = 'lower'
-            ax.xaxis.set_major_locator(CustomMaxNLocator(nbins=7, min_n_ticks=nbins, prune=prune))
+            ax.xaxis.set_major_locator(CustomMaxNLocator(nbins=7,
+                                                         min_n_ticks=nbins,
+                                                         prune=prune))
             for l in ax.get_xticklabels():
                 l.set_rotation(45)
             ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=self.use_math_text))
-            self.format_exponents_in_label_single_ax(ax.xaxis) # move exponents into label
+            self.format_exponents_in_label_single_ax(ax.xaxis)  # move exponents into label
 
         for i, ax in enumerate(self.histvert):
-            #[l.set_rotation(45) for l in ax.get_yticklabels()]
             # set limits
             if theselimits is not None:
                 if len(theselimits[self.histvert_indices[i]]) == 2:
-                    ymin, ymax = ax.get_ylim() # get current limits
+                    ymin, ymax = ax.get_ylim()  # get current limits
                     yminnew, ymaxnew = theselimits[self.histvert_indices[i]]
                     if yminnew == None:
                         yminnew = ymin
                     if ymaxnew == None:
                         ymaxnew = ymax
-                    #dy = 0.025*(ymaxnew-yminnew) # add a little bit of space
-                    #ax.set_ylim([yminnew-dy, ymaxnew+dy])
                     ax.set_ylim([yminnew, ymaxnew])
 
-            nbins = min([len(ax.get_yticklabels()), 5]) # make sure there are at least 4 tick marks (after removal of one) and a max of 7
-            prune = None # remove lower tick to avoid overlapping labels
+            # make sure there are at least 4 tick marks (after removal of one) and a max of 7
+            nbins = min([len(ax.get_yticklabels()), 5])
+            prune = None  # remove lower tick to avoid overlapping labels
             if i < len(self.histvert)-1:
                 prune = 'lower'
-            ax.yaxis.set_major_locator(CustomMaxNLocator(nbins=7, min_n_ticks=nbins, prune=prune))
+            ax.yaxis.set_major_locator(CustomMaxNLocator(nbins=7,
+                                                         min_n_ticks=nbins,
+                                                         prune=prune))
             ax.yaxis.set_major_formatter(ScalarFormatter(useMathText=self.use_math_text))
-            self.format_exponents_in_label_single_ax(ax.yaxis) # move exponents into label
+            self.format_exponents_in_label_single_ax(ax.yaxis)  # move exponents into label
 
         for i, ax in enumerate(self.jointaxes):
             # remove any offset text from shared axes caused by the scalar formatter for MathText
@@ -768,16 +807,16 @@ class scotchcorner(object):
 
             if theselimits is not None:
                 if len(theselimits[self.jointaxes_indices[i][0]]) == 2:
-                    xmin, xmax = ax.get_xlim() # get current limits
+                    xmin, xmax = ax.get_xlim()  # get current limits
                     xminnew, xmaxnew = theselimits[self.jointaxes_indices[i][0]]
                     if xminnew == None:
                         xminnew = xmin
                     if xmaxnew == None:
                         xmaxnew = xmax
-                    dx = 0.02*(xmaxnew-xminnew) # add a little bit of space
+                    dx = 0.02*(xmaxnew-xminnew)  # add a little bit of space
                     ax.set_xlim([xminnew-dx, xmaxnew+dx])
                 if len(theselimits[self.jointaxes_indices[i][1]]) == 2:
-                    ymin, ymax = ax.get_ylim() # get current limits
+                    ymin, ymax = ax.get_ylim()  # get current limits
                     yminnew, ymaxnew = theselimits[self.jointaxes_indices[i][1]]
                     if yminnew == None:
                         yminnew = ymin
@@ -786,8 +825,15 @@ class scotchcorner(object):
                     dy = 0.02*(ymaxnew-yminnew) # add a little bit of space
                     ax.set_ylim([yminnew-dy, ymaxnew+dy])
 
-    def plot_bounded_2d_kde_contours(self, ax, pts, xlow=None, xhigh=None, ylow=None, yhigh=None, transform=None, gridsize=250, clip=None):
-        """Function (based on that in `plotutils` by `Will Farr <https://github.com/farr>`_ and edited by `Ben Farr <https://github.com/bfarr>`_) for plotting contours from a bounded 2d KDE"""
+    def plot_bounded_2d_kde_contours(self, ax, pts, xlow=None, xhigh=None,
+                                     ylow=None, yhigh=None, transform=None,
+                                     gridsize=250, clip=None):
+        """
+        Function (based on that in `plotutils` by
+        `Will Farr <https://github.com/farr>`_ and edited by
+        `Ben Farr <https://github.com/bfarr>`_) for plotting contours from a
+        bounded 2d KDE.
+        """
 
         if transform is None:
             transform = lambda x: x
@@ -805,7 +851,8 @@ class scotchcorner(object):
 
         Nden = den_pts.shape[0]
 
-        post_kde = Bounded_2d_kde(kde_pts, xlow=xlow, xhigh=xhigh, ylow=ylow, yhigh=yhigh)
+        post_kde = Bounded_2d_kde(kde_pts, xlow=xlow, xhigh=xhigh, ylow=ylow,
+                                  yhigh=yhigh)
         den = post_kde(den_pts)
         densort = np.sort(den)[::-1]
 
@@ -838,7 +885,7 @@ class scotchcorner(object):
         # Plot the contours (plot them seperately)
         for k, level in enumerate(self.levels):
             alpha = self.contour_kwargs.pop('alpha', 1.0)
-            self.contour_kwargs['alpha'] = level # set tranparency to the contour level
+            self.contour_kwargs['alpha'] = level  # set tranparency to the contour level
             cset = ax.contour(xx, yy, z, [zvalues[k]], **self.contour_kwargs)
             self.contour_kwargs['alpha'] = alpha
 
@@ -846,14 +893,15 @@ class scotchcorner(object):
             if self.contour_kwargs['colors'] == 'k':
                 pl.setp(cset.collections, path_effects=[PathEffects.withStroke(linewidth=1.5, foreground="w")])
             fmt = {}
-            #strs = ['{}%'.format(int(100*level)) for level in self.levels]
             fmt[cset.levels[0]] = '{}%'.format(int(100*level))
-            #for l, s in zip(cset.levels, strs):
-            #    fmt[l] = s
-            
+
             if self.show_level_labels:
-                pl.clabel(cset, cset.levels, fmt=fmt, fontsize=11, **self.contour_kwargs)#, use_clabeltext=True)
+                lw = self.contour_kwargs.pop('linewidths')
+                alpha = self.contour_kwargs.pop('alpha')
+                ax.clabel(cset, cset.levels, fmt=fmt, fontsize=11, **self.contour_kwargs)
                 pl.setp(cset.labelTexts, color='k', path_effects=[PathEffects.withStroke(linewidth=1.5, foreground="w")])
+                self.contour_kwargs['linewidths'] = lw
+                self.contour_kwargs['alpha'] = alpha
 
     def _check_alpha(self):
         """
@@ -890,8 +938,9 @@ class scotchcorner(object):
             
     def update_label(self, old_label, exponent_text):
         """
-        Method to transform given label into the new label (this function comes from
-        `this patch <https://github.com/dfm/corner.py/pull/53/files>`_ to `corner.py <https://github.com/dfm/corner.py>`_
+        Method to transform given label into the new label (this function comes
+        from `this patch <https://github.com/dfm/corner.py/pull/53/files>`_ to
+        `corner.py <https://github.com/dfm/corner.py>`_
         by `Greg Ashton <https://github.com/ga7g08>`_) """
         if exponent_text == "":
             return old_label
@@ -912,7 +961,6 @@ class scotchcorner(object):
                 s = r"[{} {}]".format(exponent_text, units)
             else:
                 s = r"{} [{} {}]".format(label, exponent_text, units)
-        #s = s.replace("-", "\\textrm{-}")
         return s
 
     def format_exponents_in_label_single_ax(self, ax):
@@ -931,7 +979,8 @@ class scotchcorner(object):
         Parameters
         ----------
         filename : str, required
-            The filename of the figure to save. The figure format is determined by the file extension.
+            The filename of the figure to save. The figure format is determined
+            by the file extension.
         """
         self._format_axes()
         self._fig.savefig(filename)
@@ -945,3 +994,4 @@ class scotchcorner(object):
     def fig(self):
         """ Return the :class:`matplotlib.figure.Figure` """
         return self._fig
+
