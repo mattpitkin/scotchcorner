@@ -11,8 +11,7 @@ a multi-dimensional parameter space.
 
 ## Installation
 
-This code requires numpy, scipy and matplotlib. To make the plots look pretty a
-[matplotlib](http://matplotlib.org) version greater than or equal to 1.5.1 is needed.
+This code requires numpy, scipy and [matplotlib](http://matplotlib.org), with a matplotlib version greater than or equal to 2.0.
 
 The repository can be cloned and then installed using:
 
